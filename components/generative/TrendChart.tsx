@@ -5,6 +5,7 @@ import {
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import type { TrendResult } from "@/lib/queries";
+import { czCurrency } from "@/lib/format";
 
 export function TrendChart({ data }: { data: TrendResult }) {
   return (
@@ -14,9 +15,12 @@ export function TrendChart({ data }: { data: TrendResult }) {
           Vývoj leadů a prodejů — posledních {data.monthsBack} měsíců
           {data.district ? ` · ${data.district}` : ""}
         </CardTitle>
-        <div className="mt-2 flex gap-3 text-xs text-zinc-600">
-          <Badge tone="info">Leadů celkem: {data.totalLeads}</Badge>
-          <Badge tone="success">Prodejů celkem: {data.totalSales}</Badge>
+        <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-600">
+          <Badge tone="info">Leadů: {data.totalLeads}</Badge>
+          <Badge tone="success">Prodejů: {data.totalSales}</Badge>
+          <Badge tone="default">Objem: {czCurrency(data.totalVolume)}</Badge>
+          <Badge tone="default">Provize: {czCurrency(data.totalCommission)}</Badge>
+          <Badge tone="warn">Ø cena prodeje: {czCurrency(data.avgPricePerSale)}</Badge>
         </div>
       </CardHeader>
       <CardBody>

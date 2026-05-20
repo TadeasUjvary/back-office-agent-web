@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   getNewClients, getLeadsAndSalesTrend, proposeViewingSlots,
   auditMissingRenovationData, weeklyReport, setupMarketMonitoring,
+  listAgents, queryProperties,
 } from "@/lib/queries";
 
 const QuarterSchema = z.enum(["Q1", "Q2", "Q3", "Q4"]);
@@ -78,6 +79,31 @@ export const tools = {
     execute: async ({ weekEnding, includeSlides }) => {
       return { ...weeklyReport(weekEnding), includeSlides };
     },
+  }),
+
+  listAgents: tool({
+    description:
+      "Vrátí seznam všech makléřů firmy s jejich KPI (počet prodejů, objem, provize, aktivní inzeráty, chybějící data). Použij pro dotazy typu 'Jaké jsou jména makléřů?', 'Kdo je nejlepší makléř za celou dobu?', 'Kolik prodal Petr Svoboda?'.",
+    inputSchema: z.object({}),
+    execute: async () => listAgents(),
+  }),
+
+  queryProperties: tool({
+    description:
+      "Univerzální dotaz nad databází nemovitostí — filtruj dle lokality, typu, ceny, plochy, stavu, layoutu, dostupnosti dat o rekonstrukci. Použij pro libovolný dotaz o konkrétních nemovitostech, který nezvládají ostatní tooly. Vrací počet shod, průměrnou cenu, rozdělení dle statusu a top 25 řádků.",
+    inputSchema: z.object({
+      district: z.string().optional().describe("Lokalita — Praha-Holešovice, Praha-Karlín, Brno-střed, ..."),
+      type: z.string().optional().describe("Typ — 'Byt 2+kk', 'Rodinný dům', 'Pozemek', 'Komerční prostor' atd."),
+      status: z.enum(["nabízí se", "rezervováno", "prodáno"]).optional(),
+      layout: z.string().optional().describe("Dispozice u bytů, např. 'Byt 2+kk'"),
+      minPrice: z.number().int().optional().describe("Minimální cena v Kč"),
+      maxPrice: z.number().int().optional().describe("Maximální cena v Kč"),
+      minArea: z.number().int().optional().describe("Minimální plocha m²"),
+      maxArea: z.number().int().optional().describe("Maximální plocha m²"),
+      hasRenovationData: z.boolean().optional().describe("true = jen s vyplněnými daty, false = jen bez nich"),
+      limit: z.number().int().min(1).max(100).default(25).describe("Maximální počet řádků v odpovědi"),
+    }),
+    execute: async (filters) => queryProperties(filters),
   }),
 
   setupMarketMonitoring: tool({

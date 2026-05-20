@@ -58,6 +58,9 @@ export type TrendPoint = {
   isoMonth: string; // "2026-05"
   leads: number;
   sales: number;
+  salesVolume: number; // součet prodejních cen v Kč
+  salesAvgPrice: number; // průměrná prodejní cena
+  commission: number; // součet provizí v Kč
 };
 export type TrendResult = {
   monthsBack: number;
@@ -65,6 +68,9 @@ export type TrendResult = {
   series: TrendPoint[];
   totalLeads: number;
   totalSales: number;
+  totalVolume: number;
+  totalCommission: number;
+  avgPricePerSale: number; // průměr přes celé období
 };
 
 const CZ_MONTHS = [
@@ -84,7 +90,10 @@ export function getLeadsAndSalesTrend(
     let m = tm - i;
     while (m <= 0) { m += 12; y -= 1; }
     const iso = `${y}-${String(m).padStart(2, "0")}`;
-    series.push({ month: `${CZ_MONTHS[m]} ${y}`, isoMonth: iso, leads: 0, sales: 0 });
+    series.push({
+      month: `${CZ_MONTHS[m]} ${y}`, isoMonth: iso,
+      leads: 0, sales: 0, salesVolume: 0, salesAvgPrice: 0, commission: 0,
+    });
   }
   const idx = new Map(series.map((p, i) => [p.isoMonth, i]));
   for (const l of leads) {
@@ -101,14 +110,124 @@ export function getLeadsAndSalesTrend(
     }
     const k = s.closed_at.slice(0, 7);
     const i = idx.get(k);
-    if (i !== undefined) series[i].sales += 1;
+    if (i !== undefined) {
+      series[i].sales += 1;
+      series[i].salesVolume += s.sale_price_czk;
+      series[i].commission += s.commission_czk;
+    }
   }
+  for (const p of series) {
+    p.salesAvgPrice = p.sales ? Math.round(p.salesVolume / p.sales) : 0;
+  }
+  const totalSales = series.reduce((a, p) => a + p.sales, 0);
+  const totalVolume = series.reduce((a, p) => a + p.salesVolume, 0);
   return {
     monthsBack,
     district,
     series,
     totalLeads: series.reduce((a, p) => a + p.leads, 0),
-    totalSales: series.reduce((a, p) => a + p.sales, 0),
+    totalSales,
+    totalVolume,
+    totalCommission: series.reduce((a, p) => a + p.commission, 0),
+    avgPricePerSale: totalSales ? Math.round(totalVolume / totalSales) : 0,
+  };
+}
+
+// ─── Agent stats ──────────────────────────────────────────────────────────
+export type AgentStats = {
+  id: number;
+  name: string;
+  email: string;
+  activeListings: number;
+  totalListings: number;
+  salesCount: number;
+  salesVolume: number;
+  commission: number;
+  avgSalePrice: number;
+  missingRenovation: number;
+};
+export type AgentsResult = { agents: AgentStats[] };
+
+export function listAgents(): AgentsResult {
+  const { agents, properties, sales } = loadAll();
+  return {
+    agents: agents.map((a) => {
+      const props = properties.filter((p) => p.agent_id === a.id);
+      const ags = sales.filter((s) => s.agent_id === a.id);
+      const volume = ags.reduce((acc, s) => acc + s.sale_price_czk, 0);
+      const commission = ags.reduce((acc, s) => acc + s.commission_czk, 0);
+      return {
+        id: a.id,
+        name: a.name,
+        email: a.email,
+        activeListings: props.filter((p) => p.status === "nabízí se").length,
+        totalListings: props.length,
+        salesCount: ags.length,
+        salesVolume: volume,
+        commission,
+        avgSalePrice: ags.length ? Math.round(volume / ags.length) : 0,
+        missingRenovation: props.filter((p) => p.has_renovation_data === 0).length,
+      };
+    }),
+  };
+}
+
+// ─── Generic property query ───────────────────────────────────────────────
+export type PropertyQueryResult = {
+  total: number;
+  matched: number;
+  avgPrice: number;
+  byStatus: { status: string; count: number }[];
+  rows: {
+    ref_code: string; address: string; district: string; type: string;
+    price_czk: number; area_m2: number; status: string;
+    has_renovation_data: 0 | 1; agent: string;
+  }[];
+};
+
+export function queryProperties(filters: {
+  district?: string;
+  type?: string;
+  status?: "nabízí se" | "rezervováno" | "prodáno";
+  layout?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minArea?: number;
+  maxArea?: number;
+  hasRenovationData?: boolean;
+  limit?: number;
+}): PropertyQueryResult {
+  const { properties, agents } = loadAll();
+  const agentById = new Map(agents.map((a) => [a.id, a.name]));
+  let rows = properties.slice();
+  if (filters.district) rows = rows.filter((p) => p.district === filters.district);
+  if (filters.type) rows = rows.filter((p) => p.type === filters.type);
+  if (filters.status) rows = rows.filter((p) => p.status === filters.status);
+  if (filters.layout) rows = rows.filter((p) => p.layout === filters.layout);
+  if (filters.minPrice !== undefined) rows = rows.filter((p) => p.price_czk >= filters.minPrice!);
+  if (filters.maxPrice !== undefined) rows = rows.filter((p) => p.price_czk <= filters.maxPrice!);
+  if (filters.minArea !== undefined) rows = rows.filter((p) => p.area_m2 >= filters.minArea!);
+  if (filters.maxArea !== undefined) rows = rows.filter((p) => p.area_m2 <= filters.maxArea!);
+  if (filters.hasRenovationData !== undefined) {
+    rows = rows.filter((p) => (p.has_renovation_data === 1) === filters.hasRenovationData);
+  }
+  const matched = rows.length;
+  const avgPrice = matched ? Math.round(rows.reduce((a, p) => a + p.price_czk, 0) / matched) : 0;
+  const statusMap = new Map<string, number>();
+  for (const p of rows) statusMap.set(p.status, (statusMap.get(p.status) ?? 0) + 1);
+  const byStatus = [...statusMap.entries()].map(([status, count]) => ({ status, count }));
+  const limit = filters.limit ?? 25;
+  return {
+    total: properties.length,
+    matched,
+    avgPrice,
+    byStatus,
+    rows: rows.slice(0, limit).map((p) => ({
+      ref_code: p.ref_code, address: p.address, district: p.district, type: p.type,
+      price_czk: p.price_czk, area_m2: p.area_m2, status: p.status,
+      has_renovation_data: p.has_renovation_data,
+      agent: agentById.get(p.agent_id) ?? "—",
+    })),
   };
 }
 

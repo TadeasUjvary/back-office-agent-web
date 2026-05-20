@@ -5,6 +5,8 @@ import { EmailDraft } from "@/components/generative/EmailDraft";
 import { AuditTable } from "@/components/generative/AuditTable";
 import { ReportSlides } from "@/components/generative/ReportSlides";
 import { BriefingCard } from "@/components/generative/BriefingCard";
+import { AgentsList } from "@/components/generative/AgentsList";
+import { PropertyQueryResultCard } from "@/components/generative/PropertyQueryResult";
 import { Loader2 } from "lucide-react";
 
 type ToolUIPart = {
@@ -22,6 +24,8 @@ const TOOL_LABELS: Record<string, string> = {
   "tool-auditMissingRenovationData": "Procházím databázi nemovitostí…",
   "tool-weeklyReport": "Sestavuji týdenní report…",
   "tool-setupMarketMonitoring": "Nastavuji ranní monitoring…",
+  "tool-listAgents": "Načítám tým makléřů…",
+  "tool-queryProperties": "Filtruji databázi nemovitostí…",
 };
 
 export function ToolPart({ part }: { part: ToolUIPart }) {
@@ -63,6 +67,10 @@ export function ToolPart({ part }: { part: ToolUIPart }) {
       return <ReportSlides data={output} />;
     case "tool-setupMarketMonitoring":
       return <BriefingCard data={output} />;
+    case "tool-listAgents":
+      return <AgentsList data={output} />;
+    case "tool-queryProperties":
+      return <PropertyQueryResultCard data={output} />;
     default:
       return (
         <pre className="overflow-auto rounded-lg bg-zinc-50 p-3 text-xs">
