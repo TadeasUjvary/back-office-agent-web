@@ -7,6 +7,8 @@ import { ReportSlides } from "@/components/generative/ReportSlides";
 import { BriefingCard } from "@/components/generative/BriefingCard";
 import { AgentsList } from "@/components/generative/AgentsList";
 import { PropertyQueryResultCard } from "@/components/generative/PropertyQueryResult";
+import { IntegrationBadge } from "@/components/IntegrationBadge";
+import { sourcesFor } from "@/lib/integrations";
 import { Loader2 } from "lucide-react";
 
 type ToolUIPart = {
@@ -30,12 +32,23 @@ const TOOL_LABELS: Record<string, string> = {
 
 export function ToolPart({ part }: { part: ToolUIPart }) {
   const label = TOOL_LABELS[part.type] ?? "Volám nástroj…";
+  const toolName = part.type.replace(/^tool-/, "");
+  const sources = sourcesFor(toolName);
 
   if (part.state === "input-streaming" || part.state === "input-available") {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
-        <Loader2 className="size-4 animate-spin text-indigo-600" />
-        {label}
+      <div className="space-y-1.5">
+        {sources.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {sources.map((s) => (
+              <IntegrationBadge key={s.id} id={s.id} prefix="Čtu z" />
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600">
+          <Loader2 className="size-4 animate-spin text-indigo-600" />
+          {label}
+        </div>
       </div>
     );
   }
@@ -49,33 +62,55 @@ export function ToolPart({ part }: { part: ToolUIPart }) {
   }
 
   const output = part.output as never;
+  let component: React.ReactNode;
   switch (part.type) {
     case "tool-getNewClients":
-      return (
+      component = (
         <ClientsBySourceChart
           data={output}
           chartType={(output as { chartType: "pie" | "bar" }).chartType}
         />
       );
+      break;
     case "tool-getLeadsAndSalesTrend":
-      return <TrendChart data={output} />;
+      component = <TrendChart data={output} />;
+      break;
     case "tool-proposeViewingSlots":
-      return <EmailDraft data={output} />;
+      component = <EmailDraft data={output} />;
+      break;
     case "tool-auditMissingRenovationData":
-      return <AuditTable data={output} />;
+      component = <AuditTable data={output} />;
+      break;
     case "tool-weeklyReport":
-      return <ReportSlides data={output} />;
+      component = <ReportSlides data={output} />;
+      break;
     case "tool-setupMarketMonitoring":
-      return <BriefingCard data={output} />;
+      component = <BriefingCard data={output} />;
+      break;
     case "tool-listAgents":
-      return <AgentsList data={output} />;
+      component = <AgentsList data={output} />;
+      break;
     case "tool-queryProperties":
-      return <PropertyQueryResultCard data={output} />;
+      component = <PropertyQueryResultCard data={output} />;
+      break;
     default:
-      return (
+      component = (
         <pre className="overflow-auto rounded-lg bg-zinc-50 p-3 text-xs">
           {JSON.stringify(output, null, 2)}
         </pre>
       );
   }
+
+  return (
+    <div className="space-y-2">
+      {sources.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {sources.map((s) => (
+            <IntegrationBadge key={s.id} id={s.id} />
+          ))}
+        </div>
+      )}
+      {component}
+    </div>
+  );
 }

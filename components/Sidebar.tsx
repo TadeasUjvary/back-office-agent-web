@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, BellRing, Database, Sparkles } from "lucide-react";
+import { MessageSquare, BellRing, Database, Sparkles, Plug } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const NAV = [
   { href: "/", label: "Chat", icon: MessageSquare },
   { href: "/briefings", label: "Ranní briefingy", icon: BellRing },
   { href: "/data", label: "Datová vrstva", icon: Database },
+  { href: "/integrations", label: "Integrace", icon: Plug },
 ];
 
 export function Sidebar() {
