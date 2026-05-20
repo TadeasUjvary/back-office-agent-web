@@ -1,0 +1,533 @@
+[
+  {
+    "id": 1,
+    "property_id": 2,
+    "client_id": 120,
+    "agent_id": 1,
+    "sale_price_czk": 14879000,
+    "commission_czk": 490952,
+    "closed_at": "2025-10-07 13:45"
+  },
+  {
+    "id": 2,
+    "property_id": 4,
+    "client_id": 82,
+    "agent_id": 4,
+    "sale_price_czk": 14809000,
+    "commission_czk": 642212,
+    "closed_at": "2026-04-26 17:00"
+  },
+  {
+    "id": 3,
+    "property_id": 7,
+    "client_id": 66,
+    "agent_id": 2,
+    "sale_price_czk": 4723000,
+    "commission_czk": 217083,
+    "closed_at": "2026-04-20 14:45"
+  },
+  {
+    "id": 4,
+    "property_id": 8,
+    "client_id": 76,
+    "agent_id": 3,
+    "sale_price_czk": 12543000,
+    "commission_czk": 534714,
+    "closed_at": "2025-06-14 16:00"
+  },
+  {
+    "id": 5,
+    "property_id": 9,
+    "client_id": 136,
+    "agent_id": 2,
+    "sale_price_czk": 3794000,
+    "commission_czk": 133864,
+    "closed_at": "2026-04-30 14:00"
+  },
+  {
+    "id": 6,
+    "property_id": 10,
+    "client_id": 79,
+    "agent_id": 2,
+    "sale_price_czk": 3930000,
+    "commission_czk": 136243,
+    "closed_at": "2026-05-16 14:00"
+  },
+  {
+    "id": 7,
+    "property_id": 17,
+    "client_id": 137,
+    "agent_id": 2,
+    "sale_price_czk": 27644000,
+    "commission_czk": 1046203,
+    "closed_at": "2026-01-13 12:45"
+  },
+  {
+    "id": 8,
+    "property_id": 18,
+    "client_id": 63,
+    "agent_id": 2,
+    "sale_price_czk": 21817000,
+    "commission_czk": 851499,
+    "closed_at": "2026-04-06 17:15"
+  },
+  {
+    "id": 9,
+    "property_id": 20,
+    "client_id": 78,
+    "agent_id": 2,
+    "sale_price_czk": 18180000,
+    "commission_czk": 724773,
+    "closed_at": "2026-02-15 13:00"
+  },
+  {
+    "id": 10,
+    "property_id": 25,
+    "client_id": 165,
+    "agent_id": 4,
+    "sale_price_czk": 13764000,
+    "commission_czk": 578690,
+    "closed_at": "2026-05-15 14:00"
+  },
+  {
+    "id": 11,
+    "property_id": 26,
+    "client_id": 108,
+    "agent_id": 4,
+    "sale_price_czk": 23524000,
+    "commission_czk": 806686,
+    "closed_at": "2026-03-10 12:30"
+  },
+  {
+    "id": 12,
+    "property_id": 28,
+    "client_id": 74,
+    "agent_id": 3,
+    "sale_price_czk": 14727000,
+    "commission_czk": 506876,
+    "closed_at": "2025-10-20 10:45"
+  },
+  {
+    "id": 13,
+    "property_id": 32,
+    "client_id": 73,
+    "agent_id": 3,
+    "sale_price_czk": 23860000,
+    "commission_czk": 745272,
+    "closed_at": "2026-01-16 10:45"
+  },
+  {
+    "id": 14,
+    "property_id": 33,
+    "client_id": 108,
+    "agent_id": 3,
+    "sale_price_czk": 9305000,
+    "commission_czk": 453876,
+    "closed_at": "2025-12-04 10:15"
+  },
+  {
+    "id": 15,
+    "property_id": 37,
+    "client_id": 118,
+    "agent_id": 4,
+    "sale_price_czk": 9839000,
+    "commission_czk": 341181,
+    "closed_at": "2026-04-26 17:15"
+  },
+  {
+    "id": 16,
+    "property_id": 38,
+    "client_id": 100,
+    "agent_id": 1,
+    "sale_price_czk": 2862000,
+    "commission_czk": 98684,
+    "closed_at": "2026-05-02 08:00"
+  },
+  {
+    "id": 17,
+    "property_id": 42,
+    "client_id": 105,
+    "agent_id": 4,
+    "sale_price_czk": 9041000,
+    "commission_czk": 349845,
+    "closed_at": "2025-10-08 16:30"
+  },
+  {
+    "id": 18,
+    "property_id": 48,
+    "client_id": 84,
+    "agent_id": 5,
+    "sale_price_czk": 11233000,
+    "commission_czk": 448216,
+    "closed_at": "2025-11-19 13:30"
+  },
+  {
+    "id": 19,
+    "property_id": 49,
+    "client_id": 62,
+    "agent_id": 1,
+    "sale_price_czk": 14754000,
+    "commission_czk": 705318,
+    "closed_at": "2025-11-30 17:15"
+  },
+  {
+    "id": 20,
+    "property_id": 53,
+    "client_id": 73,
+    "agent_id": 5,
+    "sale_price_czk": 16450000,
+    "commission_czk": 536218,
+    "closed_at": "2026-05-07 14:00"
+  },
+  {
+    "id": 21,
+    "property_id": 54,
+    "client_id": 170,
+    "agent_id": 1,
+    "sale_price_czk": 2750000,
+    "commission_czk": 112884,
+    "closed_at": "2026-05-03 14:00"
+  },
+  {
+    "id": 22,
+    "property_id": 56,
+    "client_id": 144,
+    "agent_id": 2,
+    "sale_price_czk": 19801000,
+    "commission_czk": 624355,
+    "closed_at": "2025-12-25 11:45"
+  },
+  {
+    "id": 23,
+    "property_id": 57,
+    "client_id": 99,
+    "agent_id": 1,
+    "sale_price_czk": 3077000,
+    "commission_czk": 114362,
+    "closed_at": "2026-04-15 10:30"
+  },
+  {
+    "id": 24,
+    "property_id": 67,
+    "client_id": 152,
+    "agent_id": 2,
+    "sale_price_czk": 17305000,
+    "commission_czk": 729184,
+    "closed_at": "2025-08-18 12:15"
+  },
+  {
+    "id": 25,
+    "property_id": 72,
+    "client_id": 62,
+    "agent_id": 1,
+    "sale_price_czk": 5107000,
+    "commission_czk": 221416,
+    "closed_at": "2026-04-01 15:15"
+  },
+  {
+    "id": 26,
+    "property_id": 73,
+    "client_id": 125,
+    "agent_id": 4,
+    "sale_price_czk": 24111000,
+    "commission_czk": 775706,
+    "closed_at": "2025-09-12 10:30"
+  },
+  {
+    "id": 27,
+    "property_id": 75,
+    "client_id": 169,
+    "agent_id": 2,
+    "sale_price_czk": 30251000,
+    "commission_czk": 1426338,
+    "closed_at": "2025-11-09 16:00"
+  },
+  {
+    "id": 28,
+    "property_id": 78,
+    "client_id": 126,
+    "agent_id": 5,
+    "sale_price_czk": 11243000,
+    "commission_czk": 457481,
+    "closed_at": "2025-09-26 18:00"
+  },
+  {
+    "id": 29,
+    "property_id": 82,
+    "client_id": 164,
+    "agent_id": 1,
+    "sale_price_czk": 13848000,
+    "commission_czk": 438627,
+    "closed_at": "2025-11-15 09:30"
+  },
+  {
+    "id": 30,
+    "property_id": 83,
+    "client_id": 179,
+    "agent_id": 2,
+    "sale_price_czk": 16012000,
+    "commission_czk": 576964,
+    "closed_at": "2025-09-06 12:45"
+  },
+  {
+    "id": 31,
+    "property_id": 84,
+    "client_id": 75,
+    "agent_id": 1,
+    "sale_price_czk": 26760000,
+    "commission_czk": 1166731,
+    "closed_at": "2025-12-12 08:45"
+  },
+  {
+    "id": 32,
+    "property_id": 85,
+    "client_id": 67,
+    "agent_id": 1,
+    "sale_price_czk": 6607000,
+    "commission_czk": 284459,
+    "closed_at": "2025-12-23 10:15"
+  },
+  {
+    "id": 33,
+    "property_id": 89,
+    "client_id": 172,
+    "agent_id": 4,
+    "sale_price_czk": 21796000,
+    "commission_czk": 669416,
+    "closed_at": "2025-05-15 18:15"
+  },
+  {
+    "id": 34,
+    "property_id": 90,
+    "client_id": 149,
+    "agent_id": 3,
+    "sale_price_czk": 24811000,
+    "commission_czk": 1227739,
+    "closed_at": "2025-10-01 16:15"
+  },
+  {
+    "id": 35,
+    "property_id": 91,
+    "client_id": 88,
+    "agent_id": 1,
+    "sale_price_czk": 23536000,
+    "commission_czk": 766125,
+    "closed_at": "2026-03-08 11:15"
+  },
+  {
+    "id": 36,
+    "property_id": 97,
+    "client_id": 164,
+    "agent_id": 5,
+    "sale_price_czk": 6491000,
+    "commission_czk": 300758,
+    "closed_at": "2026-05-14 14:00"
+  },
+  {
+    "id": 37,
+    "property_id": 102,
+    "client_id": 73,
+    "agent_id": 4,
+    "sale_price_czk": 16143000,
+    "commission_czk": 708476,
+    "closed_at": "2025-08-28 09:00"
+  },
+  {
+    "id": 38,
+    "property_id": 103,
+    "client_id": 66,
+    "agent_id": 2,
+    "sale_price_czk": 17145000,
+    "commission_czk": 638501,
+    "closed_at": "2025-10-09 13:00"
+  },
+  {
+    "id": 39,
+    "property_id": 104,
+    "client_id": 137,
+    "agent_id": 2,
+    "sale_price_czk": 15338000,
+    "commission_czk": 571743,
+    "closed_at": "2025-10-26 11:15"
+  },
+  {
+    "id": 40,
+    "property_id": 107,
+    "client_id": 168,
+    "agent_id": 3,
+    "sale_price_czk": 24635000,
+    "commission_czk": 918270,
+    "closed_at": "2026-04-28 14:00"
+  },
+  {
+    "id": 41,
+    "property_id": 108,
+    "client_id": 116,
+    "agent_id": 1,
+    "sale_price_czk": 10415000,
+    "commission_czk": 516793,
+    "closed_at": "2026-02-11 16:00"
+  },
+  {
+    "id": 42,
+    "property_id": 109,
+    "client_id": 121,
+    "agent_id": 3,
+    "sale_price_czk": 9066000,
+    "commission_czk": 406267,
+    "closed_at": "2026-05-07 14:00"
+  },
+  {
+    "id": 43,
+    "property_id": 110,
+    "client_id": 161,
+    "agent_id": 1,
+    "sale_price_czk": 8306000,
+    "commission_czk": 308573,
+    "closed_at": "2026-01-01 18:00"
+  },
+  {
+    "id": 44,
+    "property_id": 111,
+    "client_id": 152,
+    "agent_id": 2,
+    "sale_price_czk": 17769000,
+    "commission_czk": 545626,
+    "closed_at": "2025-11-20 09:15"
+  },
+  {
+    "id": 45,
+    "property_id": 113,
+    "client_id": 146,
+    "agent_id": 4,
+    "sale_price_czk": 19595000,
+    "commission_czk": 731534,
+    "closed_at": "2026-05-15 14:00"
+  },
+  {
+    "id": 46,
+    "property_id": 115,
+    "client_id": 94,
+    "agent_id": 4,
+    "sale_price_czk": 10709000,
+    "commission_czk": 444870,
+    "closed_at": "2025-09-29 08:00"
+  },
+  {
+    "id": 47,
+    "property_id": 117,
+    "client_id": 68,
+    "agent_id": 4,
+    "sale_price_czk": 6695000,
+    "commission_czk": 225786,
+    "closed_at": "2026-05-11 14:00"
+  },
+  {
+    "id": 48,
+    "property_id": 123,
+    "client_id": 142,
+    "agent_id": 5,
+    "sale_price_czk": 6822000,
+    "commission_czk": 282372,
+    "closed_at": "2025-10-12 10:45"
+  },
+  {
+    "id": 49,
+    "property_id": 124,
+    "client_id": 163,
+    "agent_id": 5,
+    "sale_price_czk": 4703000,
+    "commission_czk": 184017,
+    "closed_at": "2026-05-14 14:00"
+  },
+  {
+    "id": 50,
+    "property_id": 133,
+    "client_id": 125,
+    "agent_id": 3,
+    "sale_price_czk": 6550000,
+    "commission_czk": 251899,
+    "closed_at": "2026-04-24 14:00"
+  },
+  {
+    "id": 51,
+    "property_id": 149,
+    "client_id": 105,
+    "agent_id": 1,
+    "sale_price_czk": 6577000,
+    "commission_czk": 266498,
+    "closed_at": "2026-03-05 11:15"
+  },
+  {
+    "id": 52,
+    "property_id": 156,
+    "client_id": 134,
+    "agent_id": 2,
+    "sale_price_czk": 19062000,
+    "commission_czk": 840171,
+    "closed_at": "2025-09-22 10:45"
+  },
+  {
+    "id": 53,
+    "property_id": 160,
+    "client_id": 66,
+    "agent_id": 3,
+    "sale_price_czk": 9415000,
+    "commission_czk": 430920,
+    "closed_at": "2026-04-30 14:00"
+  },
+  {
+    "id": 54,
+    "property_id": 161,
+    "client_id": 114,
+    "agent_id": 4,
+    "sale_price_czk": 16119000,
+    "commission_czk": 493201,
+    "closed_at": "2025-11-17 09:15"
+  },
+  {
+    "id": 55,
+    "property_id": 163,
+    "client_id": 100,
+    "agent_id": 1,
+    "sale_price_czk": 23837000,
+    "commission_czk": 858871,
+    "closed_at": "2026-04-06 17:00"
+  },
+  {
+    "id": 56,
+    "property_id": 164,
+    "client_id": 170,
+    "agent_id": 5,
+    "sale_price_czk": 23590000,
+    "commission_czk": 883575,
+    "closed_at": "2025-09-30 08:00"
+  },
+  {
+    "id": 57,
+    "property_id": 168,
+    "client_id": 68,
+    "agent_id": 5,
+    "sale_price_czk": 7706000,
+    "commission_czk": 231926,
+    "closed_at": "2025-09-05 13:15"
+  },
+  {
+    "id": 58,
+    "property_id": 170,
+    "client_id": 104,
+    "agent_id": 1,
+    "sale_price_czk": 6814000,
+    "commission_czk": 310782,
+    "closed_at": "2025-12-25 11:00"
+  },
+  {
+    "id": 59,
+    "property_id": 177,
+    "client_id": 117,
+    "agent_id": 2,
+    "sale_price_czk": 5597000,
+    "commission_czk": 168754,
+    "closed_at": "2026-05-13 14:00"
+  }
+]

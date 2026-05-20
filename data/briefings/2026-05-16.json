@@ -1,0 +1,17 @@
+{
+  "date": "2026-05-16",
+  "district": "Praha-Holešovice",
+  "listings": [
+    {
+      "id": "L0051",
+      "portal": "Bezrealitky.cz",
+      "title": "Byt 3+1, 39 m², Praha-Holešovice",
+      "district": "Praha-Holešovice",
+      "type": "Byt 3+1",
+      "area_m2": 39,
+      "price_czk": 5377000,
+      "url": "https://example-realitni-portal.cz/nabidka/L0051",
+      "published": "2026-05-16"
+    }
+  ]
+}

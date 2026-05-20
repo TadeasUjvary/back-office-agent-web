@@ -1,0 +1,39 @@
+{
+  "date": "2026-05-12",
+  "district": "Praha-Holešovice",
+  "listings": [
+    {
+      "id": "L0027",
+      "portal": "Sreality.cz",
+      "title": "Komerční prostor, 35 m², Praha-Holešovice",
+      "district": "Praha-Holešovice",
+      "type": "Komerční prostor",
+      "area_m2": 35,
+      "price_czk": 3961000,
+      "url": "https://example-realitni-portal.cz/nabidka/L0027",
+      "published": "2026-05-12"
+    },
+    {
+      "id": "L0028",
+      "portal": "Reality.iDNES.cz",
+      "title": "Pozemek, 89 m², Praha-Holešovice",
+      "district": "Praha-Holešovice",
+      "type": "Pozemek",
+      "area_m2": 89,
+      "price_czk": 7432000,
+      "url": "https://example-realitni-portal.cz/nabidka/L0028",
+      "published": "2026-05-12"
+    },
+    {
+      "id": "L0029",
+      "portal": "Bezrealitky.cz",
+      "title": "Rodinný dům, 78 m², Praha-Holešovice",
+      "district": "Praha-Holešovice",
+      "type": "Rodinný dům",
+      "area_m2": 78,
+      "price_czk": 8883000,
+      "url": "https://example-realitni-portal.cz/nabidka/L0029",
+      "published": "2026-05-12"
+    }
+  ]
+}

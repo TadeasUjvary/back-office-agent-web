@@ -1,0 +1,28 @@
+{
+  "date": "2026-05-13",
+  "district": "Praha-Holešovice",
+  "listings": [
+    {
+      "id": "L0034",
+      "portal": "Sreality.cz",
+      "title": "Byt 3+1, 67 m², Praha-Holešovice",
+      "district": "Praha-Holešovice",
+      "type": "Byt 3+1",
+      "area_m2": 67,
+      "price_czk": 5450000,
+      "url": "https://example-realitni-portal.cz/nabidka/L0034",
+      "published": "2026-05-13"
+    },
+    {
+      "id": "L0035",
+      "portal": "Reality.iDNES.cz",
+      "title": "Byt 2+kk, 137 m², Praha-Holešovice",
+      "district": "Praha-Holešovice",
+      "type": "Byt 2+kk",
+      "area_m2": 137,
+      "price_czk": 13909000,
+      "url": "https://example-realitni-portal.cz/nabidka/L0035",
+      "published": "2026-05-13"
+    }
+  ]
+}

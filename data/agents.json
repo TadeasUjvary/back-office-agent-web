@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "name": "Jana Nováková",
+    "email": "jana.novakova@realityholding.cz"
+  },
+  {
+    "id": 2,
+    "name": "Petr Svoboda",
+    "email": "petr.svoboda@realityholding.cz"
+  },
+  {
+    "id": 3,
+    "name": "Lucie Dvořáková",
+    "email": "lucie.dvorakova@realityholding.cz"
+  },
+  {
+    "id": 4,
+    "name": "Martin Černý",
+    "email": "martin.cerny@realityholding.cz"
+  },
+  {
+    "id": 5,
+    "name": "Eva Procházková",
+    "email": "eva.prochazkova@realityholding.cz"
+  }
+]

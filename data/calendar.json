@@ -1,0 +1,144 @@
+{
+  "owner": "Pepa (Back Office Manager)",
+  "timezone": "Europe/Prague",
+  "generated_for": "2026-05-17",
+  "working_hours": {
+    "start": "09:00",
+    "end": "18:00",
+    "workdays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "events": [
+    {
+      "date": "2026-05-18",
+      "start": "10:00",
+      "end": "11:00",
+      "title": "Call s vedením"
+    },
+    {
+      "date": "2026-05-18",
+      "start": "11:00",
+      "end": "13:00",
+      "title": "Interní porada týmu"
+    },
+    {
+      "date": "2026-05-18",
+      "start": "13:00",
+      "end": "15:00",
+      "title": "Call s vedením"
+    },
+    {
+      "date": "2026-05-20",
+      "start": "09:00",
+      "end": "11:00",
+      "title": "Interní porada týmu"
+    },
+    {
+      "date": "2026-05-20",
+      "start": "10:00",
+      "end": "11:00",
+      "title": "Příprava podkladů"
+    },
+    {
+      "date": "2026-05-20",
+      "start": "13:00",
+      "end": "14:00",
+      "title": "Prohlídka nemovitosti"
+    },
+    {
+      "date": "2026-05-21",
+      "start": "09:00",
+      "end": "10:00",
+      "title": "Call s vedením"
+    },
+    {
+      "date": "2026-05-25",
+      "start": "11:00",
+      "end": "12:00",
+      "title": "Schůzka s klientem"
+    },
+    {
+      "date": "2026-05-25",
+      "start": "16:00",
+      "end": "17:00",
+      "title": "Interní porada týmu"
+    },
+    {
+      "date": "2026-05-26",
+      "start": "11:00",
+      "end": "12:00",
+      "title": "Call s vedením"
+    },
+    {
+      "date": "2026-05-26",
+      "start": "14:00",
+      "end": "15:00",
+      "title": "Jednání o ceně"
+    },
+    {
+      "date": "2026-05-26",
+      "start": "15:00",
+      "end": "16:00",
+      "title": "Schůzka s klientem"
+    },
+    {
+      "date": "2026-05-27",
+      "start": "10:00",
+      "end": "11:00",
+      "title": "Příprava podkladů"
+    },
+    {
+      "date": "2026-05-27",
+      "start": "13:00",
+      "end": "15:00",
+      "title": "Interní porada týmu"
+    },
+    {
+      "date": "2026-05-27",
+      "start": "16:00",
+      "end": "17:00",
+      "title": "Prohlídka nemovitosti"
+    },
+    {
+      "date": "2026-05-28",
+      "start": "10:00",
+      "end": "11:00",
+      "title": "Call s vedením"
+    },
+    {
+      "date": "2026-05-28",
+      "start": "16:00",
+      "end": "18:00",
+      "title": "Interní porada týmu"
+    },
+    {
+      "date": "2026-06-01",
+      "start": "09:00",
+      "end": "11:00",
+      "title": "Jednání o ceně"
+    },
+    {
+      "date": "2026-06-01",
+      "start": "15:00",
+      "end": "16:00",
+      "title": "Jednání o ceně"
+    },
+    {
+      "date": "2026-06-01",
+      "start": "16:00",
+      "end": "17:00",
+      "title": "Jednání o ceně"
+    },
+    {
+      "date": "2026-06-02",
+      "start": "11:00",
+      "end": "13:00",
+      "title": "Jednání o ceně"
+    }
+  ]
+}
