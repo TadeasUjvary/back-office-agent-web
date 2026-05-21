@@ -9,16 +9,16 @@ export function Badge({
   ...p
 }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
   const tones: Record<Tone, string> = {
-    default: "bg-zinc-100 text-zinc-700",
-    success: "bg-emerald-100 text-emerald-700",
-    warn: "bg-amber-100 text-amber-700",
-    danger: "bg-rose-100 text-rose-700",
-    info: "bg-sky-100 text-sky-700",
+    default: "border-hairline-strong text-ink-muted bg-paper-deep/60",
+    success: "border-[#9CB99D] text-[#2F5B3D] bg-[#E8EFE7]",
+    warn: "border-[#D6BC6A] text-[#73580F] bg-[#F0E7CC]",
+    danger: "border-[#C77373] text-[#7A1E1E] bg-[#F2DCDB]",
+    info: "border-[#9FB1B9] text-[#28404C] bg-[#DCE6EA]",
   };
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center border px-1.5 py-[1px] font-mono text-[10px] uppercase tracking-wider",
         tones[tone],
         className,
       )}

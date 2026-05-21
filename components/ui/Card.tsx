@@ -4,17 +4,28 @@ import type { HTMLAttributes } from "react";
 export function Card({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("rounded-2xl border border-zinc-200 bg-white shadow-sm", className)}
+      className={cn(
+        "border border-hairline bg-card",
+        className,
+      )}
       {...p}
     />
   );
 }
 export function CardHeader({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("border-b border-zinc-100 px-5 py-4", className)} {...p} />;
+  return <div className={cn("border-b border-hairline px-6 py-4", className)} {...p} />;
 }
 export function CardTitle({ className, ...p }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn("text-sm font-semibold text-zinc-900", className)} {...p} />;
+  return (
+    <h3
+      className={cn(
+        "font-display text-[18px] font-medium leading-tight tracking-tight text-ink",
+        className,
+      )}
+      {...p}
+    />
+  );
 }
 export function CardBody({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("px-5 py-4", className)} {...p} />;
+  return <div className={cn("px-6 py-5", className)} {...p} />;
 }

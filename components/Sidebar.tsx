@@ -1,53 +1,73 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, BellRing, Database, Sparkles, Plug } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const NAV = [
-  { href: "/", label: "Chat", icon: MessageSquare },
-  { href: "/briefings", label: "Ranní briefingy", icon: BellRing },
-  { href: "/data", label: "Datová vrstva", icon: Database },
-  { href: "/integrations", label: "Integrace", icon: Plug },
+  { href: "/", label: "Konverzace", num: "01" },
+  { href: "/briefings", label: "Ranní briefingy", num: "02" },
+  { href: "/data", label: "Datová vrstva", num: "03" },
+  { href: "/integrations", label: "Integrace", num: "04" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50/60">
-      <div className="flex items-center gap-2 px-5 py-5">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
-          <Sparkles className="size-4" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-zinc-900">Back Office Agent</p>
-          <p className="text-xs text-zinc-500">Reality Holding</p>
-        </div>
+    <aside className="flex w-72 shrink-0 flex-col border-r border-hairline bg-paper-deep">
+      {/* Brand */}
+      <div className="px-7 pt-9 pb-6">
+        <p className="eyebrow">Reality Holding</p>
+        <h1
+          className="display mt-2 text-[26px] leading-[1.05] tracking-tight text-ink"
+          style={{ fontVariationSettings: "'opsz' 144" }}
+        >
+          Back Office<br />
+          <em className="not-italic text-copper">Agent</em>
+        </h1>
+        <div className="hairline mt-6" />
       </div>
-      <nav className="flex-1 px-3">
+
+      {/* Nav */}
+      <nav className="px-3">
         {NAV.map((n) => {
-          const Active = pathname === n.href || (n.href !== "/" && pathname.startsWith(n.href));
-          const Icon = n.icon;
+          const active = pathname === n.href || (n.href !== "/" && pathname.startsWith(n.href));
           return (
             <Link
               key={n.href}
               href={n.href}
               className={cn(
-                "mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                Active
-                  ? "bg-white font-medium text-zinc-900 shadow-sm"
-                  : "text-zinc-600 hover:bg-white/60 hover:text-zinc-900",
+                "group flex items-baseline gap-3 px-4 py-3 transition-colors",
+                active
+                  ? "bg-card text-ink"
+                  : "text-ink-muted hover:bg-card/60 hover:text-ink",
               )}
             >
-              <Icon className="size-4" />
-              {n.label}
+              <span
+                className={cn(
+                  "font-mono text-[11px] tabular-nums",
+                  active ? "text-copper" : "text-ink-faint",
+                )}
+              >
+                {n.num}
+              </span>
+              <span className="text-[14px] font-medium tracking-tight">{n.label}</span>
+              {active && (
+                <span className="ml-auto h-[1px] w-6 bg-copper" aria-hidden />
+              )}
             </Link>
           );
         })}
       </nav>
-      <div className="border-t border-zinc-200 px-5 py-4">
-        <p className="text-xs text-zinc-500">
-          Demo · synthetic data · Gemini 2.5 Flash via Vercel AI SDK
+
+      <div className="mt-auto px-7 pb-7 pt-6">
+        <div className="hairline mb-6" />
+        <p className="eyebrow mb-2">Status</p>
+        <p className="text-xs leading-relaxed text-ink-muted">
+          Demo · syntetická data ·{" "}
+          <span className="font-mono text-[10px]">gemini-2.5-flash</span>
+        </p>
+        <p className="mt-1 text-xs text-ink-faint">
+          <span className="font-mono">21</span> nástrojů · <span className="font-mono">5</span> integrací
         </p>
       </div>
     </aside>

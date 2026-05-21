@@ -1,7 +1,6 @@
 "use client";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Users } from "lucide-react";
 import type { AgentsResult } from "@/lib/queries";
 import { czCurrency } from "@/lib/format";
 
@@ -10,55 +9,72 @@ export function AgentsList({ data }: { data: AgentsResult }) {
   const topVolume = Math.max(...sorted.map((a) => a.salesVolume), 1);
   return (
     <Card>
-      <CardHeader className="flex items-center gap-2">
-        <Users className="size-4 text-indigo-600" />
-        <CardTitle>Makléři Reality Holding</CardTitle>
-        <Badge tone="info" className="ml-auto">{sorted.length} makléřů</Badge>
+      <CardHeader>
+        <p className="eyebrow">Tým · Reality Holding</p>
+        <CardTitle className="mt-1">Makléři</CardTitle>
       </CardHeader>
-      <CardBody>
-        <div className="space-y-3">
+      <CardBody className="p-0">
+        <ol>
           {sorted.map((a, idx) => (
-            <div key={a.id} className="rounded-xl border border-zinc-200 bg-white p-4">
-              <div className="flex items-baseline justify-between">
-                <p className="text-sm font-semibold text-zinc-900">
-                  {idx === 0 && <span className="mr-1">🏆</span>}
-                  {a.name}
-                </p>
-                <p className="text-xs text-zinc-500">{a.email}</p>
+            <li key={a.id} className="border-b border-hairline px-6 py-5 last:border-b-0">
+              <div className="flex items-baseline justify-between gap-4">
+                <div className="flex items-baseline gap-3 min-w-0">
+                  <span className="font-mono text-[11px] tabular-nums text-ink-faint w-8">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <p className="font-display text-[18px] tracking-tight text-ink">
+                      {a.name}
+                      {idx === 0 && (
+                        <span className="ml-2 align-middle font-mono text-[9px] uppercase tracking-wider text-copper">
+                          ◆ top
+                        </span>
+                      )}
+                    </p>
+                    <p className="font-mono text-[10px] text-ink-faint">{a.email}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="display text-[22px] leading-none tracking-tight">
+                    {a.salesCount}
+                  </p>
+                  <p className="eyebrow mt-1">prodejů</p>
+                </div>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
-                <Stat label="Prodejů" value={String(a.salesCount)} />
-                <Stat label="Objem" value={czCurrency(a.salesVolume)} />
-                <Stat label="Provize" value={czCurrency(a.commission)} />
-                <Stat label="Ø cena prodeje" value={a.salesCount ? czCurrency(a.avgSalePrice) : "—"} />
-                <Stat label="Aktivní nabídky" value={String(a.activeListings)} sub={`z ${a.totalListings} celkem`} />
-                <Stat
-                  label="Chybí data"
-                  value={String(a.missingRenovation)}
-                  sub={a.missingRenovation > 0 ? "k urgenci" : "v pořádku"}
-                />
+
+              <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-[12px] md:grid-cols-4">
+                <Field label="Objem" value={czCurrency(a.salesVolume)} />
+                <Field label="Provize" value={czCurrency(a.commission)} />
+                <Field label="Ø cena prodeje" value={a.salesCount ? czCurrency(a.avgSalePrice) : "—"} />
+                <Field label="Aktivní inzeráty" value={`${a.activeListings} / ${a.totalListings}`} />
+              </dl>
+
+              <div className="mt-3 flex items-center gap-3">
+                <div className="h-[2px] flex-1 bg-paper-deep">
+                  <div
+                    className="h-full bg-copper"
+                    style={{ width: `${(a.salesVolume / topVolume) * 100}%` }}
+                  />
+                </div>
+                {a.missingRenovation > 0 && (
+                  <Badge tone="warn">
+                    {a.missingRenovation} bez dat
+                  </Badge>
+                )}
               </div>
-              {/* Volume bar */}
-              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-zinc-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
-                  style={{ width: `${(a.salesVolume / topVolume) * 100}%` }}
-                />
-              </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </CardBody>
     </Card>
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</p>
-      <p className="mt-0.5 font-semibold tabular-nums text-zinc-900">{value}</p>
-      {sub && <p className="text-[10px] text-zinc-500">{sub}</p>}
+    <div className="flex items-baseline justify-between gap-2 md:block">
+      <dt className="font-mono text-[9px] uppercase tracking-wider text-ink-faint">{label}</dt>
+      <dd className="font-mono text-[12px] tabular-nums text-ink md:mt-0.5">{value}</dd>
     </div>
   );
 }

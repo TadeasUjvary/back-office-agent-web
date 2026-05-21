@@ -9,11 +9,11 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500";
+    "inline-flex items-center justify-center gap-2 px-3.5 py-2 text-[13px] font-medium tracking-tight transition-colors disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper";
   const variants: Record<Variant, string> = {
-    primary: "bg-zinc-900 text-white hover:bg-zinc-800",
-    secondary: "border border-zinc-200 bg-white text-zinc-900 hover:bg-zinc-50",
-    ghost: "text-zinc-700 hover:bg-zinc-100",
+    primary: "bg-ink text-paper hover:bg-ink-2",
+    secondary: "border border-hairline-strong bg-transparent text-ink hover:bg-paper-deep",
+    ghost: "text-ink-muted hover:bg-paper-deep hover:text-ink",
   };
   return <button className={cn(base, variants[variant], className)} {...props} />;
 }
