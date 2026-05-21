@@ -73,6 +73,7 @@ export const INTEGRATIONS: Record<IntegrationId, Integration> = {
 
 /** Které integrace stojí za odpovědí daného toolu — pořadí = relevance. */
 export const TOOL_SOURCES: Record<string, IntegrationId[]> = {
+  // Read
   getNewClients: ["sheets", "crm"],
   getLeadsAndSalesTrend: ["sheets", "crm"],
   proposeViewingSlots: ["calendar", "gmail"],
@@ -81,6 +82,21 @@ export const TOOL_SOURCES: Record<string, IntegrationId[]> = {
   setupMarketMonitoring: ["crm"],
   listAgents: ["crm"],
   queryProperties: ["sheets", "crm"],
+  queryLeads: ["sheets", "crm"],
+  queryClients: ["sheets", "crm"],
+  querySales: ["sheets", "crm"],
+  getPropertyDetail: ["sheets", "crm"],
+  getAgentDetail: ["crm"],
+  getLeadFunnel: ["sheets", "crm"],
+  comparePeriods: ["sheets"],
+  // Write
+  sendEmail: ["gmail"],
+  createCalendarEvent: ["calendar"],
+  logCRMNote: ["crm"],
+  urgeAgent: ["gmail", "crm"],
+  exportToSheet: ["sheets", "drive"],
+  // Web
+  fetchUrl: [],
 };
 
 export function sourcesFor(toolName: string): Integration[] {

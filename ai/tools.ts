@@ -3,8 +3,13 @@ import { z } from "zod";
 import {
   getNewClients, getLeadsAndSalesTrend, proposeViewingSlots,
   auditMissingRenovationData, weeklyReport, setupMarketMonitoring,
-  listAgents, queryProperties,
+  listAgents, queryProperties, queryLeads, queryClients, querySales,
+  getPropertyDetail, getAgentDetail, getLeadFunnel, comparePeriods,
 } from "@/lib/queries";
+import {
+  mockSendEmail, mockCreateCalendarEvent, mockLogCRMNote, mockUrgeAgent, mockExportToSheet,
+} from "@/lib/actions";
+import { fetchWebUrl } from "@/lib/web";
 
 const QuarterSchema = z.enum(["Q1", "Q2", "Q3", "Q4"]);
 
@@ -120,6 +125,164 @@ export const tools = {
     execute: async ({ district, time, portals }) => {
       return setupMarketMonitoring(district, time, portals);
     },
+  }),
+
+  // ─── READ tools ─────────────────────────────────────────────────────────
+  queryLeads: tool({
+    description:
+      "Univerzální dotaz nad databází leadů — filtruj dle statusu (nový/kontaktován/kvalifikován/konvertován/ztracený), zdroje (Sreality.cz, Web firmy, Doporučení atd.), regionu, makléře a období. Vrací počet shod, rozdělení dle statusu a zdroje, prvních 25 záznamů.",
+    inputSchema: z.object({
+      status: z.enum(["nový", "kontaktován", "kvalifikován", "konvertován", "ztracený"]).optional(),
+      source: z.string().optional().describe("Sreality.cz, Web firmy, Doporučení, Bezrealitky.cz, Sociální sítě, Walk-in, Placená inzerce"),
+      region: z.string().optional(),
+      agentName: z.string().optional().describe("Jméno makléře, např. 'Jana Nováková'"),
+      fromDate: z.string().optional().describe("YYYY-MM-DD — od kdy"),
+      toDate: z.string().optional().describe("YYYY-MM-DD — do kdy (vyloučeno)"),
+      limit: z.number().int().min(1).max(100).default(25),
+    }),
+    execute: async (f) => queryLeads(f),
+  }),
+
+  queryClients: tool({
+    description:
+      "Filtr nad klienty — prodávající vs. kupující, zdroj, region, období. Vrací rozdělení dle typu a zdroje + řádky.",
+    inputSchema: z.object({
+      type: z.enum(["prodávající", "kupující"]).optional(),
+      source: z.string().optional(),
+      region: z.string().optional(),
+      fromDate: z.string().optional(),
+      toDate: z.string().optional(),
+      limit: z.number().int().min(1).max(100).default(25),
+    }),
+    execute: async (f) => queryClients(f),
+  }),
+
+  querySales: tool({
+    description:
+      "Filtr a agregace prodejů — období, lokalita, makléř, cenový rozsah. Vrací objem, provizi, průměrnou cenu, rozdělení dle makléře a lokality + jednotlivé prodeje.",
+    inputSchema: z.object({
+      fromDate: z.string().optional().describe("YYYY-MM-DD"),
+      toDate: z.string().optional().describe("YYYY-MM-DD (vyloučeno)"),
+      district: z.string().optional(),
+      agentName: z.string().optional(),
+      minPrice: z.number().int().optional(),
+      maxPrice: z.number().int().optional(),
+      limit: z.number().int().min(1).max(100).default(25),
+    }),
+    execute: async (f) => querySales(f),
+  }),
+
+  getPropertyDetail: tool({
+    description:
+      "Plný detail jedné nemovitosti dle ref_code (RH-1042 atd.) — všechna pole, jméno makléře, údaje o vlastníkovi, případný prodej.",
+    inputSchema: z.object({
+      refCode: z.string().describe("Kód, např. RH-1042"),
+    }),
+    execute: async ({ refCode }) => getPropertyDetail(refCode),
+  }),
+
+  getAgentDetail: tool({
+    description:
+      "Detail jednoho makléře — jeho KPI, posledních 5 prodejů, aktivní inzeráty, počet chybějících dat. Použij když uživatel chce vědět konkrétního makléře jménem.",
+    inputSchema: z.object({
+      agentName: z.string().describe("Jméno, např. 'Petr Svoboda'"),
+    }),
+    execute: async ({ agentName }) => getAgentDetail(agentName),
+  }),
+
+  getLeadFunnel: tool({
+    description:
+      "Konverzní trychtýř leadů — kolik je v každém stavu (nový → kontaktován → kvalifikován → konvertován → ztracený), konverzní a kvalifikační poměr. Volitelně omez na N posledních měsíců a/nebo lokalitu.",
+    inputSchema: z.object({
+      monthsBack: z.number().int().min(1).max(14).optional(),
+      district: z.string().optional(),
+    }),
+    execute: async ({ monthsBack, district }) => getLeadFunnel(monthsBack, district),
+  }),
+
+  comparePeriods: tool({
+    description:
+      "Spočítá rozdíl jedné metriky (leads/sales/salesVolume/commission/newClients) mezi dvěma obdobími (thisWeek/lastWeek/thisMonth/lastMonth/thisQuarter/lastQuarter/thisYear/lastYear). Vrací oba počty, absolutní rozdíl, procentní změnu a směr.",
+    inputSchema: z.object({
+      metric: z.enum(["leads", "sales", "salesVolume", "commission", "newClients"]),
+      periodA: z.enum(["thisWeek", "lastWeek", "thisMonth", "lastMonth", "thisQuarter", "lastQuarter", "thisYear", "lastYear"]),
+      periodB: z.enum(["thisWeek", "lastWeek", "thisMonth", "lastMonth", "thisQuarter", "lastQuarter", "thisYear", "lastYear"]),
+    }),
+    execute: async ({ metric, periodA, periodB }) => comparePeriods(metric, periodA, periodB),
+  }),
+
+  // ─── WRITE / ACTION tools (mocked SaaS calls) ──────────────────────────
+  sendEmail: tool({
+    description:
+      "Odešle e-mail přes Gmail. Použij když chce uživatel reálně poslat mail klientovi/makléři, ne jen napsat draft. Vrací message ID a potvrzení odeslání.",
+    inputSchema: z.object({
+      to: z.string().describe("E-mail příjemce"),
+      subject: z.string(),
+      body: z.string().describe("Tělo e-mailu, plain text nebo markdown"),
+      cc: z.array(z.string()).optional(),
+      attachments: z.array(z.string()).optional().describe("Názvy příloh z Google Drive"),
+    }),
+    execute: async (a) => mockSendEmail(a),
+  }),
+
+  createCalendarEvent: tool({
+    description:
+      "Vytvoří událost v Pepově Google Kalendáři (prohlídka, schůzka, call). Použij po potvrzení termínu klientem nebo když uživatel řekne 'naplánuj'.",
+    inputSchema: z.object({
+      date: z.string().describe("YYYY-MM-DD"),
+      startTime: z.string().describe("HH:MM"),
+      durationMinutes: z.number().int().min(15).max(480).default(60),
+      title: z.string().describe("Název události, např. 'Prohlídka RH-1042 — Novák'"),
+      attendees: z.array(z.string()).optional().describe("E-maily účastníků"),
+      location: z.string().optional(),
+      notes: z.string().optional(),
+    }),
+    execute: async (a) => mockCreateCalendarEvent(a),
+  }),
+
+  logCRMNote: tool({
+    description:
+      "Přidá poznámku k záznamu v CRM (nemovitost / lead / klient / makléř). Použij když chce uživatel zapsat zjištění, postřeh, nebo follow-up úkol.",
+    inputSchema: z.object({
+      entity: z.enum(["property", "lead", "client", "agent"]),
+      ref: z.string().describe("Identifikátor — ref_code (RH-…) u nemovitosti, jinak ID nebo jméno"),
+      note: z.string().describe("Text poznámky"),
+      tag: z.string().optional().describe("Tag/kategorie, např. 'followup', 'price-drop', 'price-check'"),
+    }),
+    execute: async (a) => mockLogCRMNote(a),
+  }),
+
+  urgeAgent: tool({
+    description:
+      "Pošle urgenci konkrétnímu makléři (např. doplnění chybějících dat o rekonstrukci, nebo follow-up). Volá se typicky po auditu.",
+    inputSchema: z.object({
+      agentName: z.string(),
+      subject: z.string().describe("Předmět urgence — 'Doplnit data o rekonstrukci' atd."),
+      itemCount: z.number().int().optional().describe("Počet položek k doplnění"),
+      deadline: z.string().optional().describe("Termín, např. '2026-05-25' nebo 'do 5 prac. dnů'"),
+    }),
+    execute: async (a) => mockUrgeAgent(a),
+  }),
+
+  exportToSheet: tool({
+    description:
+      "Vyexportuje vybranou sadu záznamů do nového Google Sheetu a vrátí URL. Použij pro 'pošli mi to v tabulce' nebo 'vyexportuj audit'.",
+    inputSchema: z.object({
+      entity: z.enum(["properties", "leads", "clients", "sales", "audit"]),
+      rowCount: z.number().int().min(1).describe("Počet řádků, co se exportuje"),
+      title: z.string().optional().describe("Název listu, defaultně '<entita>-export-YYYY-MM-DD'"),
+    }),
+    execute: async (a) => mockExportToSheet(a),
+  }),
+
+  // ─── WEB access ────────────────────────────────────────────────────────
+  fetchUrl: tool({
+    description:
+      "Stáhne obsah veřejné URL z internetu (HTTP GET, max 8 KB textu) a vrátí očištěný text + titulek. Použij když uživatel pošle odkaz (Sreality, Bezrealitky, zpráva ČTK…) a chce, abys ho přečetl, shrnul nebo z něj vytáhl konkrétní fakta. Pozn.: jen veřejné stránky, žádné přihlášení.",
+    inputSchema: z.object({
+      url: z.string().describe("Veřejná HTTP/HTTPS URL"),
+    }),
+    execute: async ({ url }) => fetchWebUrl(url),
   }),
 } as const;
 

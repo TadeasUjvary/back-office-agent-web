@@ -545,6 +545,382 @@ export function findPropertyByRef(ref: string) {
   return loadAll().properties.find((p) => p.ref_code === ref);
 }
 
+// ─── Generic lead query ───────────────────────────────────────────────────
+export type LeadQueryResult = {
+  total: number;
+  matched: number;
+  byStatus: { status: string; count: number }[];
+  bySource: { source: string; count: number }[];
+  rows: {
+    id: number; full_name: string; email: string; phone: string;
+    status: string; source: string; region: string; agent: string;
+    property_interest: string; created_at: string;
+  }[];
+};
+
+export function queryLeads(filters: {
+  status?: string;
+  source?: string;
+  region?: string;
+  agentName?: string;
+  fromDate?: string;
+  toDate?: string;
+  limit?: number;
+}): LeadQueryResult {
+  const { leads, sources, agents } = loadAll();
+  const srcById = new Map(sources.map((s) => [s.id, s.name]));
+  const agentById = new Map(agents.map((a) => [a.id, a.name]));
+  let rows = leads.slice();
+  if (filters.status) rows = rows.filter((l) => l.status === filters.status);
+  if (filters.source) rows = rows.filter((l) => srcById.get(l.source_id) === filters.source);
+  if (filters.region) rows = rows.filter((l) => l.region === filters.region);
+  if (filters.agentName) {
+    rows = rows.filter((l) => agentById.get(l.agent_id) === filters.agentName);
+  }
+  if (filters.fromDate) rows = rows.filter((l) => l.created_at >= filters.fromDate!);
+  if (filters.toDate) rows = rows.filter((l) => l.created_at < filters.toDate!);
+
+  const matched = rows.length;
+  const statusMap = new Map<string, number>();
+  const sourceMap = new Map<string, number>();
+  for (const r of rows) {
+    statusMap.set(r.status, (statusMap.get(r.status) ?? 0) + 1);
+    const sn = srcById.get(r.source_id) ?? "—";
+    sourceMap.set(sn, (sourceMap.get(sn) ?? 0) + 1);
+  }
+  const limit = filters.limit ?? 25;
+  return {
+    total: leads.length,
+    matched,
+    byStatus: [...statusMap.entries()].map(([status, count]) => ({ status, count })).sort((a, b) => b.count - a.count),
+    bySource: [...sourceMap.entries()].map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count),
+    rows: rows.slice(0, limit).map((l) => ({
+      id: l.id, full_name: l.full_name, email: l.email, phone: l.phone,
+      status: l.status,
+      source: srcById.get(l.source_id) ?? "—",
+      region: l.region,
+      agent: agentById.get(l.agent_id) ?? "—",
+      property_interest: l.property_interest,
+      created_at: l.created_at,
+    })),
+  };
+}
+
+// ─── Generic client query ─────────────────────────────────────────────────
+export type ClientQueryResult = {
+  total: number;
+  matched: number;
+  byType: { type: string; count: number }[];
+  bySource: { source: string; count: number }[];
+  rows: {
+    id: number; full_name: string; email: string; phone: string;
+    type: string; source: string; region: string; created_at: string;
+  }[];
+};
+
+export function queryClients(filters: {
+  type?: "prodávající" | "kupující";
+  source?: string;
+  region?: string;
+  fromDate?: string;
+  toDate?: string;
+  limit?: number;
+}): ClientQueryResult {
+  const { clients, sources } = loadAll();
+  const srcById = new Map(sources.map((s) => [s.id, s.name]));
+  let rows = clients.slice();
+  if (filters.type) rows = rows.filter((c) => c.type === filters.type);
+  if (filters.source) rows = rows.filter((c) => srcById.get(c.source_id) === filters.source);
+  if (filters.region) rows = rows.filter((c) => c.region === filters.region);
+  if (filters.fromDate) rows = rows.filter((c) => c.created_at >= filters.fromDate!);
+  if (filters.toDate) rows = rows.filter((c) => c.created_at < filters.toDate!);
+
+  const matched = rows.length;
+  const typeMap = new Map<string, number>();
+  const sourceMap = new Map<string, number>();
+  for (const r of rows) {
+    typeMap.set(r.type, (typeMap.get(r.type) ?? 0) + 1);
+    const sn = srcById.get(r.source_id) ?? "—";
+    sourceMap.set(sn, (sourceMap.get(sn) ?? 0) + 1);
+  }
+  const limit = filters.limit ?? 25;
+  return {
+    total: clients.length,
+    matched,
+    byType: [...typeMap.entries()].map(([type, count]) => ({ type, count })),
+    bySource: [...sourceMap.entries()].map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count),
+    rows: rows.slice(0, limit).map((c) => ({
+      id: c.id, full_name: c.full_name, email: c.email, phone: c.phone,
+      type: c.type,
+      source: srcById.get(c.source_id) ?? "—",
+      region: c.region,
+      created_at: c.created_at,
+    })),
+  };
+}
+
+// ─── Sales query + aggregations ──────────────────────────────────────────
+export type SalesQueryResult = {
+  total: number;
+  matched: number;
+  volume: number;
+  commission: number;
+  avgPrice: number;
+  byAgent: { agent: string; count: number; volume: number; commission: number }[];
+  byDistrict: { district: string; count: number; volume: number }[];
+  rows: {
+    id: number; ref_code: string; address: string; district: string;
+    sale_price_czk: number; commission_czk: number; agent: string; closed_at: string;
+  }[];
+};
+
+export function querySales(filters: {
+  fromDate?: string;
+  toDate?: string;
+  district?: string;
+  agentName?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  limit?: number;
+}): SalesQueryResult {
+  const { sales, properties, agents } = loadAll();
+  const propById = new Map(properties.map((p) => [p.id, p]));
+  const agentById = new Map(agents.map((a) => [a.id, a.name]));
+
+  let rows = sales.slice();
+  if (filters.fromDate) rows = rows.filter((s) => s.closed_at >= filters.fromDate!);
+  if (filters.toDate) rows = rows.filter((s) => s.closed_at < filters.toDate!);
+  if (filters.agentName) rows = rows.filter((s) => agentById.get(s.agent_id) === filters.agentName);
+  if (filters.district) {
+    rows = rows.filter((s) => propById.get(s.property_id)?.district === filters.district);
+  }
+  if (filters.minPrice !== undefined) rows = rows.filter((s) => s.sale_price_czk >= filters.minPrice!);
+  if (filters.maxPrice !== undefined) rows = rows.filter((s) => s.sale_price_czk <= filters.maxPrice!);
+
+  const matched = rows.length;
+  const volume = rows.reduce((a, s) => a + s.sale_price_czk, 0);
+  const commission = rows.reduce((a, s) => a + s.commission_czk, 0);
+  const avgPrice = matched ? Math.round(volume / matched) : 0;
+
+  const agMap = new Map<string, { count: number; volume: number; commission: number }>();
+  const dsMap = new Map<string, { count: number; volume: number }>();
+  for (const s of rows) {
+    const an = agentById.get(s.agent_id) ?? "—";
+    const cur = agMap.get(an) ?? { count: 0, volume: 0, commission: 0 };
+    agMap.set(an, {
+      count: cur.count + 1,
+      volume: cur.volume + s.sale_price_czk,
+      commission: cur.commission + s.commission_czk,
+    });
+    const d = propById.get(s.property_id)?.district ?? "—";
+    const curD = dsMap.get(d) ?? { count: 0, volume: 0 };
+    dsMap.set(d, { count: curD.count + 1, volume: curD.volume + s.sale_price_czk });
+  }
+
+  const limit = filters.limit ?? 25;
+  return {
+    total: sales.length,
+    matched, volume, commission, avgPrice,
+    byAgent: [...agMap.entries()].map(([agent, v]) => ({ agent, ...v })).sort((a, b) => b.volume - a.volume),
+    byDistrict: [...dsMap.entries()].map(([district, v]) => ({ district, ...v })).sort((a, b) => b.volume - a.volume),
+    rows: rows.slice(0, limit).map((s) => {
+      const p = propById.get(s.property_id);
+      return {
+        id: s.id,
+        ref_code: p?.ref_code ?? "—",
+        address: p?.address ?? "—",
+        district: p?.district ?? "—",
+        sale_price_czk: s.sale_price_czk,
+        commission_czk: s.commission_czk,
+        agent: agentById.get(s.agent_id) ?? "—",
+        closed_at: s.closed_at,
+      };
+    }),
+  };
+}
+
+// ─── Detail tools ────────────────────────────────────────────────────────
+export function getPropertyDetail(refCode: string) {
+  const { properties, agents, clients, sales } = loadAll();
+  const p = properties.find((x) => x.ref_code === refCode);
+  if (!p) return { found: false as const, refCode };
+  const agentName = agents.find((a) => a.id === p.agent_id)?.name ?? "—";
+  const owner = clients.find((c) => c.id === p.owner_client_id);
+  const sale = sales.find((s) => s.property_id === p.id);
+  return {
+    found: true as const,
+    property: p,
+    agent: agentName,
+    owner: owner ? { name: owner.full_name, email: owner.email, phone: owner.phone } : null,
+    sale: sale
+      ? {
+          sale_price_czk: sale.sale_price_czk,
+          commission_czk: sale.commission_czk,
+          closed_at: sale.closed_at,
+        }
+      : null,
+  };
+}
+
+export function getAgentDetail(agentName: string) {
+  const { agents, properties, sales } = loadAll();
+  const a = agents.find((x) => x.name.toLowerCase() === agentName.toLowerCase());
+  if (!a) return { found: false as const, agentName };
+  const props = properties.filter((p) => p.agent_id === a.id);
+  const ags = sales.filter((s) => s.agent_id === a.id);
+  return {
+    found: true as const,
+    agent: a,
+    properties: {
+      total: props.length,
+      active: props.filter((p) => p.status === "nabízí se").length,
+      reserved: props.filter((p) => p.status === "rezervováno").length,
+      sold: props.filter((p) => p.status === "prodáno").length,
+      missingRenovation: props.filter((p) => p.has_renovation_data === 0).length,
+    },
+    sales: {
+      count: ags.length,
+      volume: ags.reduce((acc, s) => acc + s.sale_price_czk, 0),
+      commission: ags.reduce((acc, s) => acc + s.commission_czk, 0),
+    },
+    recentSales: ags
+      .sort((x, y) => (x.closed_at < y.closed_at ? 1 : -1))
+      .slice(0, 5)
+      .map((s) => {
+        const p = properties.find((pp) => pp.id === s.property_id);
+        return {
+          ref_code: p?.ref_code ?? "—",
+          address: p?.address ?? "—",
+          sale_price_czk: s.sale_price_czk,
+          closed_at: s.closed_at,
+        };
+      }),
+    activeListings: props
+      .filter((p) => p.status === "nabízí se")
+      .slice(0, 5)
+      .map((p) => ({
+        ref_code: p.ref_code, address: p.address,
+        type: p.type, price_czk: p.price_czk,
+      })),
+  };
+}
+
+// ─── Lead funnel ──────────────────────────────────────────────────────────
+const FUNNEL_ORDER = ["nový", "kontaktován", "kvalifikován", "konvertován", "ztracený"] as const;
+
+export function getLeadFunnel(monthsBack?: number, district?: string) {
+  const { leads } = loadAll();
+  let rows = leads.slice();
+  if (district) rows = rows.filter((l) => l.region === district);
+  if (monthsBack !== undefined) {
+    const [ty, tm] = TODAY_ISO.split("-").map(Number);
+    let y = ty, m = tm - monthsBack;
+    while (m <= 0) { m += 12; y -= 1; }
+    const cutoff = `${y}-${String(m).padStart(2, "0")}-01`;
+    rows = rows.filter((l) => l.created_at >= cutoff);
+  }
+  const counts = new Map<string, number>();
+  for (const r of rows) counts.set(r.status, (counts.get(r.status) ?? 0) + 1);
+  const total = rows.length;
+  const stages = FUNNEL_ORDER.map((status) => {
+    const count = counts.get(status) ?? 0;
+    return { status, count, pct: total ? +(count / total * 100).toFixed(1) : 0 };
+  });
+  const converted = counts.get("konvertován") ?? 0;
+  const qualified = counts.get("kvalifikován") ?? 0;
+  return {
+    total,
+    district,
+    monthsBack,
+    stages,
+    conversionRate: total ? +(converted / total * 100).toFixed(1) : 0,
+    qualificationRate: total ? +((converted + qualified) / total * 100).toFixed(1) : 0,
+  };
+}
+
+// ─── Compare two periods ─────────────────────────────────────────────────
+export type PeriodKey = "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth" | "thisQuarter" | "lastQuarter" | "thisYear" | "lastYear";
+
+function periodRange(key: PeriodKey): { from: string; toExcl: string; label: string } {
+  const [ty, tm, td] = TODAY_ISO.split("-").map(Number);
+  const today = new Date(Date.UTC(ty, tm - 1, td));
+  const iso = (d: Date) =>
+    `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86_400_000);
+  const dow = today.getUTCDay() || 7; // Mon=1 ... Sun=7
+  const startOfThisWeek = addDays(today, -(dow - 1));
+  switch (key) {
+    case "thisWeek":
+      return { from: iso(startOfThisWeek), toExcl: iso(addDays(startOfThisWeek, 7)), label: "tento týden" };
+    case "lastWeek":
+      return { from: iso(addDays(startOfThisWeek, -7)), toExcl: iso(startOfThisWeek), label: "minulý týden" };
+    case "thisMonth":
+      return { from: `${ty}-${String(tm).padStart(2, "0")}-01`,
+        toExcl: tm === 12 ? `${ty + 1}-01-01` : `${ty}-${String(tm + 1).padStart(2, "0")}-01`, label: "tento měsíc" };
+    case "lastMonth": {
+      const m = tm === 1 ? 12 : tm - 1;
+      const y = tm === 1 ? ty - 1 : ty;
+      return { from: `${y}-${String(m).padStart(2, "0")}-01`,
+        toExcl: `${ty}-${String(tm).padStart(2, "0")}-01`, label: "minulý měsíc" };
+    }
+    case "thisQuarter": {
+      const q = Math.floor((tm - 1) / 3);
+      const m = q * 3 + 1;
+      return { from: `${ty}-${String(m).padStart(2, "0")}-01`,
+        toExcl: q === 3 ? `${ty + 1}-01-01` : `${ty}-${String(m + 3).padStart(2, "0")}-01`,
+        label: `Q${q + 1} ${ty}` };
+    }
+    case "lastQuarter": {
+      const q = Math.floor((tm - 1) / 3);
+      const prevQ = q === 0 ? 3 : q - 1;
+      const prevY = q === 0 ? ty - 1 : ty;
+      const m = prevQ * 3 + 1;
+      const endY = prevQ === 3 ? prevY + 1 : prevY;
+      const endM = prevQ === 3 ? 1 : m + 3;
+      return { from: `${prevY}-${String(m).padStart(2, "0")}-01`,
+        toExcl: `${endY}-${String(endM).padStart(2, "0")}-01`,
+        label: `Q${prevQ + 1} ${prevY}` };
+    }
+    case "thisYear":
+      return { from: `${ty}-01-01`, toExcl: `${ty + 1}-01-01`, label: `${ty}` };
+    case "lastYear":
+      return { from: `${ty - 1}-01-01`, toExcl: `${ty}-01-01`, label: `${ty - 1}` };
+  }
+}
+
+export type Metric = "leads" | "sales" | "salesVolume" | "commission" | "newClients";
+
+function metricFor(metric: Metric, fromIso: string, toExcl: string): number {
+  const { leads, sales, clients } = loadAll();
+  switch (metric) {
+    case "leads": return leads.filter((l) => inRange(l.created_at, fromIso, toExcl)).length;
+    case "sales": return sales.filter((s) => inRange(s.closed_at, fromIso, toExcl)).length;
+    case "salesVolume": return sales.filter((s) => inRange(s.closed_at, fromIso, toExcl))
+      .reduce((a, s) => a + s.sale_price_czk, 0);
+    case "commission": return sales.filter((s) => inRange(s.closed_at, fromIso, toExcl))
+      .reduce((a, s) => a + s.commission_czk, 0);
+    case "newClients": return clients.filter((c) => inRange(c.created_at, fromIso, toExcl)).length;
+  }
+}
+
+export function comparePeriods(metric: Metric, periodA: PeriodKey, periodB: PeriodKey) {
+  const a = periodRange(periodA);
+  const b = periodRange(periodB);
+  const va = metricFor(metric, a.from, a.toExcl);
+  const vb = metricFor(metric, b.from, b.toExcl);
+  const diff = va - vb;
+  const pct = vb === 0 ? null : +(diff / vb * 100).toFixed(1);
+  return {
+    metric,
+    periodA: { ...a, value: va, key: periodA },
+    periodB: { ...b, value: vb, key: periodB },
+    diff,
+    pct,
+    direction: diff > 0 ? "nárůst" as const : diff < 0 ? "pokles" as const : "beze změny" as const,
+  };
+}
+
+
 // Listings helper for AuditTable urgency button (mock — does nothing in DB)
 export function getAvailablePropertyRefs(limit = 12) {
   return loadAll()
