@@ -30,7 +30,7 @@ export function mockSendEmail(args: {
   };
 }
 
-export function mockCreateCalendarEvent(args: {
+export function mockAddCalendarEvent(args: {
   date: string;
   startTime: string;
   durationMinutes: number;

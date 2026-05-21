@@ -1,18 +1,26 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, BellRing, Database, Plug, Sparkles } from "lucide-react";
+import { MessageSquare, BellRing, Database, Plug, Sparkles, Calendar, LogOut } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAuth } from "@/lib/auth";
 
 const NAV = [
   { href: "/", label: "Konverzace", icon: MessageSquare, shortcut: "1" },
-  { href: "/briefings", label: "Ranní briefingy", icon: BellRing, shortcut: "2" },
-  { href: "/data", label: "Datová vrstva", icon: Database, shortcut: "3" },
-  { href: "/integrations", label: "Integrace", icon: Plug, shortcut: "4" },
+  { href: "/calendar", label: "Kalendář", icon: Calendar, shortcut: "2" },
+  { href: "/briefings", label: "Ranní briefingy", icon: BellRing, shortcut: "3" },
+  { href: "/data", label: "Datová vrstva", icon: Database, shortcut: "4" },
+  { href: "/integrations", label: "Integrace", icon: Plug, shortcut: "5" },
 ];
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "");
+}
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-bg-2">
       {/* Brand */}
@@ -64,6 +72,25 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto px-3 pb-4">
+        {/* User pill */}
+        {user && (
+          <div className="mb-2 flex items-center gap-2.5 rounded-lg border border-border bg-surface/60 p-2">
+            <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-accent/70 to-accent-bright/70 text-[11px] font-semibold uppercase text-white">
+              {initials(user)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[12px] font-medium text-text">{user}</p>
+              <p className="truncate font-mono text-[10px] text-text-faint">přihlášen</p>
+            </div>
+            <button
+              onClick={logout}
+              title="Odhlásit"
+              className="rounded-md p-1.5 text-text-faint transition-colors hover:bg-surface-2 hover:text-text"
+            >
+              <LogOut className="size-3.5" />
+            </button>
+          </div>
+        )}
         <div className="rounded-lg border border-border bg-surface/60 p-3">
           <div className="flex items-center gap-2">
             <span className="relative flex size-2">
@@ -76,7 +103,7 @@ export function Sidebar() {
             gemini-2.5-flash
           </p>
           <div className="mt-3 flex items-center gap-3 text-[10px] text-text-faint">
-            <span><span className="text-text-2 font-mono">21</span> nástrojů</span>
+            <span><span className="text-text-2 font-mono">22</span> nástrojů</span>
             <span className="size-0.5 rounded-full bg-text-dim" />
             <span><span className="text-text-2 font-mono">5</span> integrací</span>
           </div>

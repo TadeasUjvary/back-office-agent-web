@@ -10,9 +10,12 @@ import { PropertyQueryResultCard } from "@/components/generative/PropertyQueryRe
 import { SimpleTable } from "@/components/generative/SimpleTable";
 import { LeadFunnelChart } from "@/components/generative/LeadFunnelChart";
 import {
-  SendEmailResult, CalendarEventResult, CRMNoteResult, UrgeAgentResult,
+  SendEmailResult, CRMNoteResult, UrgeAgentResult,
   ExportSheetResult, FetchUrlResult, ComparePeriodsResult,
 } from "@/components/generative/ActionResult";
+import { EventCreatedCard } from "@/components/generative/EventCreatedCard";
+import { WebSearchResult } from "@/components/generative/WebSearchResult";
+import { ExportDownloadCard } from "@/components/generative/ExportDownloadCard";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { IntegrationBadge } from "@/components/IntegrationBadge";
@@ -45,11 +48,13 @@ const TOOL_LABELS: Record<string, string> = {
   "tool-getLeadFunnel": "Skládám konverzní trychtýř…",
   "tool-comparePeriods": "Porovnávám období…",
   "tool-sendEmail": "Odesílám e-mail přes Gmail…",
-  "tool-createCalendarEvent": "Zakládám událost v Google Calendar…",
+  "tool-addCalendarEvent": "Zapisuji do Google Calendar…",
   "tool-logCRMNote": "Zapisuji poznámku do CRM…",
   "tool-urgeAgent": "Posílám urgenci makléři…",
   "tool-exportToSheet": "Exportuji do Google Sheets…",
   "tool-fetchUrl": "Stahuji obsah z webu…",
+  "tool-webSearch": "Hledám na Googlu…",
+  "tool-exportData": "Připravuji export souboru…",
 };
 
 export function ToolPart({ part }: { part: ToolUIPart }) {
@@ -291,8 +296,8 @@ export function ToolPart({ part }: { part: ToolUIPart }) {
     case "tool-sendEmail":
       component = <SendEmailResult data={output} />;
       break;
-    case "tool-createCalendarEvent":
-      component = <CalendarEventResult data={output} />;
+    case "tool-addCalendarEvent":
+      component = <EventCreatedCard data={output} />;
       break;
     case "tool-logCRMNote":
       component = <CRMNoteResult data={output} />;
@@ -305,6 +310,12 @@ export function ToolPart({ part }: { part: ToolUIPart }) {
       break;
     case "tool-fetchUrl":
       component = <FetchUrlResult data={output} />;
+      break;
+    case "tool-webSearch":
+      component = <WebSearchResult data={output} />;
+      break;
+    case "tool-exportData":
+      component = <ExportDownloadCard data={output} />;
       break;
     default:
       component = (

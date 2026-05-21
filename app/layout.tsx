@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/Sidebar";
+import { Providers } from "@/components/Providers";
+import { AuthShell } from "@/components/AuthShell";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -21,15 +22,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="cs"
-      className={`${inter.variable} ${plexMono.variable} h-full`}
-    >
+    <html lang="cs" className={`${inter.variable} ${plexMono.variable} h-full`}>
       <body className="h-full">
-        <div className="flex h-full">
-          <Sidebar />
-          <main className="flex h-full flex-1 flex-col overflow-hidden">{children}</main>
-        </div>
+        <Providers>
+          <AuthShell>{children}</AuthShell>
+        </Providers>
       </body>
     </html>
   );

@@ -91,12 +91,15 @@ export const TOOL_SOURCES: Record<string, IntegrationId[]> = {
   comparePeriods: ["sheets"],
   // Write
   sendEmail: ["gmail"],
-  createCalendarEvent: ["calendar"],
+  addCalendarEvent: ["calendar"],
   logCRMNote: ["crm"],
   urgeAgent: ["gmail", "crm"],
   exportToSheet: ["sheets", "drive"],
   // Web
   fetchUrl: [],
+  webSearch: [],
+  // Exports
+  exportData: ["drive"],
 };
 
 export function sourcesFor(toolName: string): Integration[] {

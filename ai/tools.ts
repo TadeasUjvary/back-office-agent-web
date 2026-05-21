@@ -7,7 +7,7 @@ import {
   getPropertyDetail, getAgentDetail, getLeadFunnel, comparePeriods,
 } from "@/lib/queries";
 import {
-  mockSendEmail, mockCreateCalendarEvent, mockLogCRMNote, mockUrgeAgent, mockExportToSheet,
+  mockSendEmail, mockAddCalendarEvent, mockLogCRMNote, mockUrgeAgent, mockExportToSheet,
 } from "@/lib/actions";
 import { fetchWebUrl } from "@/lib/web";
 
@@ -225,19 +225,19 @@ export const tools = {
     execute: async (a) => mockSendEmail(a),
   }),
 
-  createCalendarEvent: tool({
+  addCalendarEvent: tool({
     description:
-      "Vytvoří událost v Pepově Google Kalendáři (prohlídka, schůzka, call). Použij po potvrzení termínu klientem nebo když uživatel řekne 'naplánuj'.",
+      "Aktivně zapíše událost do Pepova Google Kalendáře (prohlídka, schůzka, call). Použij když uživatel řekne 'naplánuj', 'přidej', 'zapiš', 'rezervuj' termín. Událost se okamžitě objeví v sekci Kalendář v levém menu. Vrací potvrzení a event ID.",
     inputSchema: z.object({
       date: z.string().describe("YYYY-MM-DD"),
       startTime: z.string().describe("HH:MM"),
       durationMinutes: z.number().int().min(15).max(480).default(60),
       title: z.string().describe("Název události, např. 'Prohlídka RH-1042 — Novák'"),
+      description: z.string().optional().describe("Popis / poznámky k události"),
       attendees: z.array(z.string()).optional().describe("E-maily účastníků"),
       location: z.string().optional(),
-      notes: z.string().optional(),
     }),
-    execute: async (a) => mockCreateCalendarEvent(a),
+    execute: async (a) => mockAddCalendarEvent({ ...a, notes: a.description }),
   }),
 
   logCRMNote: tool({
@@ -283,6 +283,40 @@ export const tools = {
       url: z.string().describe("Veřejná HTTP/HTTPS URL"),
     }),
     execute: async ({ url }) => fetchWebUrl(url),
+  }),
+
+  // ─── EXPORT — reálné PDF / XLSX ke stažení ─────────────────────────────
+  exportData: tool({
+    description:
+      "Připraví data k reálnému stažení jako PDF nebo Excel soubor. Použij když chce uživatel data 'stáhnout', 'vyexportovat', 'poslat v PDF/Excelu'. Render karta s tlačítkem 'Stáhnout' — soubor se vygeneruje v prohlížeči (jspdf / xlsx) a stáhne. Pro tabulky použij kind='table', pro souvislý text 'text', pro vícesekční report 'report'.",
+    inputSchema: z.object({
+      format: z.enum(["pdf", "excel"]).describe("Formát stahovaného souboru"),
+      title: z.string().describe("Název dokumentu/souboru (bez přípony)"),
+      content: z.discriminatedUnion("kind", [
+        z.object({
+          kind: z.literal("table"),
+          columns: z.array(z.string()).describe("Hlavička sloupců"),
+          rows: z.array(z.array(z.union([z.string(), z.number()]))).describe("Řádky (2D pole)"),
+          summary: z.string().optional().describe("Krátké shrnutí pod tabulkou"),
+        }),
+        z.object({
+          kind: z.literal("text"),
+          body: z.string().describe("Souvislý text (markdown OK)"),
+        }),
+        z.object({
+          kind: z.literal("report"),
+          sections: z.array(z.object({
+            heading: z.string(),
+            body: z.string(),
+          })).describe("Sekce reportu, každá s nadpisem a obsahem"),
+        }),
+      ]),
+    }),
+    // execute jen předá vstup do output — render & generování souboru na klientovi
+    execute: async (args) => ({
+      ...args,
+      preparedAt: new Date().toISOString(),
+    }),
   }),
 } as const;
 

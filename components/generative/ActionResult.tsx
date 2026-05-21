@@ -2,7 +2,7 @@
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
-  CheckCircle2, Mail, CalendarPlus, FileSpreadsheet, MessageSquarePlus, AlertTriangle, BellRing, ExternalLink, Globe,
+  CheckCircle2, Mail, FileSpreadsheet, MessageSquarePlus, AlertTriangle, BellRing, ExternalLink, Globe,
 } from "lucide-react";
 import { czCurrency } from "@/lib/format";
 
@@ -66,25 +66,6 @@ export function SendEmailResult({ data }: { data: ReturnType<typeof import("@/li
         ...(data.attachments?.length
           ? [{ label: "Přílohy", value: data.attachments.join(", ") }]
           : []),
-      ]}
-    />
-  );
-}
-
-export function CalendarEventResult({ data }: { data: ReturnType<typeof import("@/lib/actions").mockCreateCalendarEvent> }) {
-  return (
-    <ConfirmCard
-      icon={CalendarPlus}
-      accent="indigo"
-      title="Událost přidaná do kalendáře"
-      subtitle={`Event ID: ${data.eventId}`}
-      rows={[
-        { label: "Název", value: data.title },
-        { label: "Kdy", value: `${data.date} · ${data.startTime} (${data.durationMinutes} min)` },
-        { label: "Kalendář", value: data.calendar },
-        ...(data.attendees.length ? [{ label: "Účastníci", value: data.attendees.join(", ") }] : []),
-        ...(data.location !== "—" ? [{ label: "Místo", value: data.location }] : []),
-        { label: "Odkaz", value: <a href={data.htmlLink} className="text-indigo-600 hover:underline">Otevřít v Calendar</a> },
       ]}
     />
   );
