@@ -50,7 +50,7 @@ export default function IntegrationsPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <PageHeader
-        eyebrow="Settings · integrace"
+        eyebrow="Kde má asistent přístup"
         title="Připojené systémy"
         description="Mockované propojení s Google Workspace a interním CRM. Agent skrz tyto integrace čte a zapisuje data místo aby si je vymýšlel."
         right={

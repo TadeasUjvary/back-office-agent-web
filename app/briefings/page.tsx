@@ -88,13 +88,12 @@ export default function BriefingsPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <PageHeader
-        eyebrow="Cron / monitoring"
+        eyebrow="Co se nového objevilo na trhu"
         title="Ranní briefingy"
         description={
           <>
-            Lokalita <span className="font-mono text-text">{district}</span> · denně v{" "}
-            <span className="font-mono">07:30</span> · ukládáno do Supabase (
-            <span className="font-mono">briefings</span> tabulka).
+            Každé ráno v 07:30 se podívám, co přibylo k prodeji v <span className="font-mono text-text">{district}</span>.
+            Nové nabídky proletí přes Sreality, Bezrealitky a iDNES — sumáře najdete níže.
           </>
         }
         right={

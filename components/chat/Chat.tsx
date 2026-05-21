@@ -186,7 +186,7 @@ export function Chat() {
         <div className="flex items-center gap-2.5">
           <Wrench className="size-3.5 text-text-faint" />
           <h2 className="text-[13px] font-medium tracking-tight text-text">
-            Konverzace s agentem
+            Asistent
           </h2>
         </div>
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-text-faint">
@@ -335,7 +335,7 @@ export function Chat() {
               onChange={(e) => setInput(e.target.value)}
               disabled={busy}
               placeholder={
-                "Napište zprávu agentovi…  (např. „Najdi byty 2+kk v Karlíně do 8 mil.“)"
+                "Napište co potřebujete vyřešit…  (např. „Najdi byty 2+kk v Karlíně do 8 mil.“)"
               }
               className="flex-1 bg-transparent px-1 text-[14px] outline-none placeholder:text-text-faint disabled:opacity-50"
             />
@@ -370,21 +370,20 @@ function Welcome({ onPick }: { onPick: (text: string) => void }) {
     <div className="mx-auto max-w-3xl pt-12">
       <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-2 px-3 py-1 text-[11px] text-text-muted">
         <span className="inline-block size-1.5 rounded-full bg-green animate-pulse" />
-        Demo · syntetická data · seed=42
+        Reality Holding · interní pracovní prostředí
       </div>
       <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.025em] text-text">
-        Co potřebuje Pepa?
+        Dobrý den, Pepo.
       </h1>
       <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-text-muted">
-        Ptám se vašich dat za vás. Klienti, leady, kalendář, audity, ranní briefingy
-        — vše skrz volání nástrojů nad mockovanými integracemi Google Workspace a interním CRM.
-        Žádné odhady, žádné halucinace. Můžete mi nahrát vlastní soubor přes sponku,
-        nebo zapnout vyhledávání na internetu.
+        Co dnes potřebujete vyřešit? Můžu projít leady, prohledat databázi nemovitostí,
+        připravit report pro vedení, naplánovat schůzku, nebo se podívat ven na trh.
+        Stačí napsat.
       </p>
 
       <div className="mt-10 mb-3 flex items-center gap-2">
         <p className="text-[11px] font-medium uppercase tracking-wider text-text-faint">
-          Sugerované dotazy
+          Časté úkoly
         </p>
         <span className="h-px flex-1 bg-border" />
       </div>

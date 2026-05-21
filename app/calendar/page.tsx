@@ -71,12 +71,13 @@ export default function CalendarPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <PageHeader
-        eyebrow="Pepa · Europe/Prague"
-        title="Kalendář"
+        eyebrow="Pepův kalendář · Europe/Prague"
+        title="Co máte v plánu"
         description={
           <>
-            Seed z mockovaného Google Calendar (<span className="font-mono">{totalCount - agentCount}</span> událostí)
-            + nové události, které založil agent v chatu (<span className="font-mono text-accent-bright">{agentCount}</span>).
+            Stávajících schůzek: <span className="font-mono">{totalCount - agentCount}</span>.
+            Co naplánoval asistent v chatu: <span className="font-mono text-accent-bright">{agentCount}</span>.
+            Cokoliv přibude v rozhovoru, objeví se tady.
           </>
         }
         right={

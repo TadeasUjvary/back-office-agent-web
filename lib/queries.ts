@@ -634,8 +634,8 @@ function buildSlides(d: {
   // 1) KPI overview
   all.push({
     kind: "kpi-grid",
-    heading: `Shrnutí — ${d.periodLabel}`,
-    subheading: "Klíčové ukazatele za období",
+    heading: `Shrnutí · ${d.periodLabel}`,
+    subheading: "Jak to celkově dopadlo",
     kpis: [
       { label: "Nové leady", value: String(d.newLeads) },
       { label: "Prodeje", value: String(d.nSales), sub: d.topAgent.count > 0 ? `top: ${d.topAgent.name}` : undefined },
@@ -648,8 +648,8 @@ function buildSlides(d: {
   if (d.leadsBySource.length > 0) {
     all.push({
       kind: "bar-chart",
-      heading: "Kanály akvizice leadů",
-      subheading: "Odkud chodí noví zájemci",
+      heading: "Odkud chodí leady",
+      subheading: "Které kanály reálně přivádějí zájemce",
       data: d.leadsBySource.slice(0, 8).map((s) => ({ label: s.name, value: s.count })),
     });
   }
@@ -658,8 +658,8 @@ function buildSlides(d: {
   if (d.pipeline.length > 0) {
     all.push({
       kind: "pie-chart",
-      heading: "Pipeline leadů",
-      subheading: "Stav konverzního trychtýře",
+      heading: "Pipeline",
+      subheading: "Kde teď leady jsou",
       data: d.pipeline.map((p) => ({ label: p.status, value: p.count })),
     });
   }
@@ -668,8 +668,8 @@ function buildSlides(d: {
   if (d.agentBreakdown.length > 0) {
     all.push({
       kind: "bar-chart",
-      heading: "Výkon makléřů",
-      subheading: "Počet prodejů za období",
+      heading: "Makléři · uzavřené prodeje",
+      subheading: "Kdo za období zavřel kolik",
       data: d.agentBreakdown.slice(0, 8).map((a) => ({ label: a.name, value: a.count })),
     });
   }
@@ -678,8 +678,8 @@ function buildSlides(d: {
   if (d.recentSales.length > 0) {
     all.push({
       kind: "table",
-      heading: "Detail prodejů",
-      subheading: `${d.recentSales.length} nejnovějších uzavřených transakcí`,
+      heading: "Prodeje · detail",
+      subheading: `Poslední uzavřené transakce (${d.recentSales.length})`,
       columns: ["Kód", "Adresa", "Cena", "Makléř", "Datum"],
       rows: d.recentSales.map((s) => [
         s.ref_code,
@@ -695,8 +695,8 @@ function buildSlides(d: {
   if (d.districtBreakdown.length > 0) {
     all.push({
       kind: "pie-chart",
-      heading: "Prodeje dle lokality",
-      subheading: "Objemové rozdělení",
+      heading: "Kde se prodávalo",
+      subheading: "Rozdělení objemu podle lokality",
       data: d.districtBreakdown.map((x) => ({ label: x.district, value: x.volume })),
     });
   }
@@ -704,11 +704,11 @@ function buildSlides(d: {
   // 7) Inzerce stav
   all.push({
     kind: "kpi-grid",
-    heading: "Stav inzerce",
-    subheading: "Současný portfolio snapshot",
+    heading: "Co je teď v portfoliu",
+    subheading: "Stav inzerce k dnešnímu dni",
     kpis: [
       { label: "Aktivní nabídky", value: String(d.active), sub: `rezervováno ${d.reserved}` },
-      { label: "Chybí data o rekonstrukci", value: String(d.missing), sub: "k auditu" },
+      { label: "Chybí rekonstrukce", value: String(d.missing), sub: "k doplnění" },
       { label: "Noví klienti", value: String(d.newClients), sub: "za období" },
     ],
   });
@@ -716,13 +716,13 @@ function buildSlides(d: {
   // 8) Priority & rizika
   all.push({
     kind: "text",
-    heading: "Priority na další období",
-    subheading: "Doporučené akce",
+    heading: "Na čem zapracovat",
+    subheading: "Tři věci, co by se měly stát teď",
     bullets: [
-      `Doplnit ${d.missing} nemovitostí bez dat o rekonstrukci — týká se inzerce.`,
+      `Doplnit ${d.missing} nemovitostí, kterým chybí data o rekonstrukci — kazí to inzerci.`,
       `Posunout ${d.pipeline.find((p) => p.status === "kvalifikován")?.count ?? 0} kvalifikovaných leadů k prohlídce.`,
-      `Aktivně nabízíme ${d.active} nemovitostí (${d.reserved} rezervováno).`,
-      d.topAgent.count > 0 ? `Top makléř období — ${d.topAgent.name} (${d.topAgent.count} prodejů). Ocenit.` : "",
+      `${d.active} nemovitostí v aktivní nabídce, ${d.reserved} rezervováno — připravit follow-up.`,
+      d.topAgent.count > 0 ? `Top makléř období: ${d.topAgent.name} (${d.topAgent.count} prodejů). Stojí za poděkování.` : "",
     ].filter(Boolean),
   });
 

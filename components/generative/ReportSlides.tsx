@@ -25,17 +25,26 @@ export function ReportSlides({ data }: Props) {
 }
 
 function Kpi({ label, value, sub, big }: { label: string; value: string; sub?: string; big?: boolean }) {
+  // Auto-scale font for long values (e.g. "53 637 000 Kč") so they fit in narrow columns
+  const valueLen = value.length;
+  const size = big
+    ? valueLen > 14
+      ? "text-[18px]"
+      : valueLen > 9
+        ? "text-[22px]"
+        : "text-[28px]"
+    : valueLen > 12
+      ? "text-[15px]"
+      : "text-[18px]";
   return (
-    <div className="border-l border-border pl-4">
+    <div className="min-w-0 border-l border-border pl-4">
       <p className="text-[10px] uppercase tracking-wider text-text-faint">{label}</p>
       <p
-        className={`mt-1 font-semibold leading-tight tracking-[-0.02em] text-text whitespace-nowrap ${
-          big ? "text-[32px]" : "text-[20px]"
-        }`}
+        className={`mt-1.5 font-semibold leading-[1.05] tracking-[-0.02em] text-text whitespace-nowrap ${size}`}
       >
         {value}
       </p>
-      {sub && <p className="font-mono text-[10px] text-text-faint mt-0.5">{sub}</p>}
+      {sub && <p className="font-mono text-[10px] text-text-faint mt-1">{sub}</p>}
     </div>
   );
 }
@@ -128,22 +137,33 @@ function SlideDeck({ slides, periodLabel }: { slides: ReportSlide[]; periodLabel
 
 function SlideRenderer({ slide }: { slide: ReportSlide }) {
   switch (slide.kind) {
-    case "kpi-grid":
+    case "kpi-grid": {
+      const n = slide.kpis.length;
+      // 4 KPIs → 2×2 grid (more breathing room); fewer → 1 row
+      const gridCls =
+        n >= 4
+          ? "grid-cols-2 sm:grid-cols-4"
+          : n === 3
+            ? "grid-cols-3"
+            : n === 2
+              ? "grid-cols-2"
+              : "grid-cols-1";
       return (
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div>
-            <h2 className="text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text">
+            <h2 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-text">
               {slide.heading}
             </h2>
-            {slide.subheading && <p className="mt-1 text-[14px] text-text-muted">{slide.subheading}</p>}
+            {slide.subheading && <p className="mt-1.5 text-[13px] text-text-muted">{slide.subheading}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div className={`grid ${gridCls} gap-x-8 gap-y-7`}>
             {slide.kpis.map((k, idx) => (
               <Kpi key={idx} label={k.label} value={k.value} sub={k.sub} big />
             ))}
           </div>
         </div>
       );
+    }
     case "bar-chart":
       return (
         <div className="space-y-4">

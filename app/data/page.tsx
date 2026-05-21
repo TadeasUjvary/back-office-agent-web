@@ -12,8 +12,8 @@ export default function DataPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <PageHeader
-        eyebrow="Datová vrstva · read-only"
-        title="Syntetický dataset"
+        eyebrow="To, s čím asistent pracuje"
+        title="Firemní data"
         description={
           <>
             Generováno deterministicky (<span className="font-mono">seed=42</span>, ref. datum{" "}

@@ -42,12 +42,12 @@ export default function LoginPage() {
           onSubmit={submit}
           className="rounded-xl border border-border bg-surface p-6 lift"
         >
-          <p className="eyebrow mb-2">Vstup do aplikace</p>
+          <p className="eyebrow mb-2">Reality Holding</p>
           <h2 className="mb-1 text-[17px] font-semibold tracking-tight text-text">
-            Přihlášení
+            Vítejte zpátky
           </h2>
           <p className="mb-5 text-[13px] text-text-muted">
-            Demo režim — stačí zadat jméno, neukládáme nic kromě localStorage.
+            Zadejte své jméno a můžeme začít. Konverzace se ukládají pod ním.
           </p>
 
           <label className="block">
