@@ -17,55 +17,42 @@ export type StoredMessage = {
   created_at: string;
 };
 
-export async function listConversations(userId: string, limit = 30) {
+/** Get or create THE single conversation for this user.
+ *  We now keep exactly one conversation per user — simpler model. */
+export async function getOrCreateUserConversation(userId: string): Promise<Conversation> {
   const sb = getServerSupabase();
-  const { data, error } = await sb
+  // Find existing
+  const { data: existing, error: findErr } = await sb
     .from("conversations")
     .select("*")
     .eq("user_id", userId)
     .order("last_message_at", { ascending: false })
-    .limit(limit);
-  if (error) throw error;
-  return (data ?? []) as Conversation[];
-}
+    .limit(1);
+  if (findErr) throw findErr;
+  if (existing && existing.length > 0) return existing[0] as Conversation;
 
-export async function getConversation(id: string) {
-  const sb = getServerSupabase();
-  const [conv, msgs] = await Promise.all([
-    sb.from("conversations").select("*").eq("id", id).single(),
-    sb.from("messages").select("*").eq("conversation_id", id).order("created_at", { ascending: true }),
-  ]);
-  if (conv.error) return null;
-  return {
-    conversation: conv.data as Conversation,
-    messages: (msgs.data ?? []) as StoredMessage[],
-  };
-}
-
-export async function createConversation(userId: string, title: string | null = null) {
-  const sb = getServerSupabase();
-  const { data, error } = await sb
+  // Create
+  const { data: created, error: createErr } = await sb
     .from("conversations")
-    .insert({ user_id: userId, title })
+    .insert({ user_id: userId, title: "Konverzace" })
     .select()
     .single();
-  if (error) throw error;
-  return data as Conversation;
+  if (createErr) throw createErr;
+  return created as Conversation;
 }
 
-export async function deleteConversation(id: string) {
+export async function loadMessages(conversationId: string): Promise<StoredMessage[]> {
   const sb = getServerSupabase();
-  const { error } = await sb.from("conversations").delete().eq("id", id);
+  const { data, error } = await sb
+    .from("messages")
+    .select("*")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
   if (error) throw error;
+  return (data ?? []) as StoredMessage[];
 }
 
-export async function renameConversation(id: string, title: string) {
-  const sb = getServerSupabase();
-  const { error } = await sb.from("conversations").update({ title }).eq("id", id);
-  if (error) throw error;
-}
-
-/** Upsert messages — idempotent on id, useful for streaming finalize. */
+/** Upsert messages — idempotent on id. */
 export async function saveMessages(
   conversationId: string,
   messages: Array<{ id: string; role: "user" | "assistant" | "system"; parts: unknown[] }>,
@@ -80,9 +67,16 @@ export async function saveMessages(
   }));
   const { error } = await sb.from("messages").upsert(rows, { onConflict: "id" });
   if (error) throw error;
-  // Touch last_message_at
   await sb
     .from("conversations")
     .update({ last_message_at: new Date().toISOString() })
     .eq("id", conversationId);
+}
+
+/** Wipe all messages for the user's single conversation. */
+export async function wipeMessages(userId: string) {
+  const sb = getServerSupabase();
+  const conv = await getOrCreateUserConversation(userId);
+  const { error } = await sb.from("messages").delete().eq("conversation_id", conv.id);
+  if (error) throw error;
 }

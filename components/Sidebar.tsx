@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, BellRing, Database, Plug, Sparkles, Calendar, LogOut } from "lucide-react";
+import { MessageSquare, BellRing, Database, Plug, Sparkles, Calendar, LogOut, Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
-import { ChatHistory } from "./ChatHistory";
 
 const NAV = [
   { href: "/", label: "Konverzace", icon: MessageSquare, shortcut: "1" },
@@ -22,6 +21,21 @@ function initials(name: string) {
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+
+  const wipeHistory = async () => {
+    if (!user) return;
+    if (!confirm("Vymazat celou historii konverzace?")) return;
+    try {
+      await fetch("/api/conversation", {
+        method: "DELETE",
+        headers: { "x-user-id": encodeURIComponent(user) },
+      });
+      window.dispatchEvent(new CustomEvent("bo-chat-wipe"));
+    } catch (e) {
+      alert("Mazání selhalo: " + (e instanceof Error ? e.message : "neznámá chyba"));
+    }
+  };
+
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-bg-2">
       {/* Brand */}
@@ -72,12 +86,21 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Chat history */}
-      <div className="mt-3 border-t border-border pt-2 flex-1 min-h-0 overflow-hidden">
-        <ChatHistory />
-      </div>
+      {/* Wipe chat history button — only shown on chat page */}
+      {pathname === "/" && (
+        <div className="mt-2 px-3">
+          <button
+            onClick={wipeHistory}
+            className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-[12px] text-text-faint transition-colors hover:bg-surface/60 hover:text-rose"
+            title="Smaže historii a začne novou konverzaci"
+          >
+            <Trash2 className="size-3" />
+            Vymazat historii
+          </button>
+        </div>
+      )}
 
-      <div className="border-t border-border px-3 py-3">
+      <div className="mt-auto border-t border-border px-3 py-3">
         {/* User pill */}
         {user && (
           <div className="mb-2 flex items-center gap-2.5 rounded-lg border border-border bg-surface/60 p-2">

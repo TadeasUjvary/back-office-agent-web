@@ -2,7 +2,6 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import {
   ArrowUp, Sparkles, User, Bot, Wrench, BarChart3, Mail, FileSearch,
@@ -46,13 +45,9 @@ const WEBSEARCH_KEY = "bo-agent-websearch";
 
 export function Chat() {
   const { user } = useAuth();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const conversationIdFromUrl = searchParams.get("c");
 
   const [webSearch, setWebSearch] = useState(false);
   const webSearchRef = useRef(false);
-  const conversationIdRef = useRef<string | null>(conversationIdFromUrl);
 
   // Restore toggle state from localStorage on mount
   useEffect(() => {
@@ -68,11 +63,6 @@ export function Chat() {
     try { localStorage.setItem(WEBSEARCH_KEY, String(webSearch)); } catch {}
   }, [webSearch]);
 
-  // Sync conversation ref with URL
-  useEffect(() => {
-    conversationIdRef.current = conversationIdFromUrl;
-  }, [conversationIdFromUrl]);
-
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -80,32 +70,26 @@ export function Chat() {
         headers: (): Record<string, string> =>
           user ? { "x-user-id": encodeURIComponent(user) } : {},
         prepareSendMessagesRequest: ({ messages, body }) => ({
-          body: {
-            ...body,
-            messages,
-            webSearch: webSearchRef.current,
-            conversationId: conversationIdRef.current,
-          },
+          body: { ...body, messages, webSearch: webSearchRef.current },
         }),
       }),
     [user],
   );
 
-  // Initial messages — load from conversation if URL has ?c=<id>
+  // Load single user conversation history on mount
   const [initialMessages, setInitialMessages] = useState<UIMessage[] | undefined>(undefined);
-  const [loadingHistory, setLoadingHistory] = useState(!!conversationIdFromUrl);
+  const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
-    if (!conversationIdFromUrl) {
-      setInitialMessages(undefined);
+    if (!user) {
       setLoadingHistory(false);
       return;
     }
     setLoadingHistory(true);
-    fetch(`/api/conversations/${conversationIdFromUrl}`, {
-      headers: user ? { "x-user-id": encodeURIComponent(user) } : undefined,
+    fetch("/api/conversation", {
+      headers: { "x-user-id": encodeURIComponent(user) },
     })
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (!data?.messages) {
           setInitialMessages([]);
@@ -120,20 +104,26 @@ export function Chat() {
       })
       .catch(() => setInitialMessages([]))
       .finally(() => setLoadingHistory(false));
-  }, [conversationIdFromUrl, user]);
+  }, [user]);
 
   const { messages, sendMessage, status, error, setMessages } = useChat({
-    id: conversationIdFromUrl ?? undefined,
     transport,
     messages: initialMessages,
   });
 
-  // Hydrate messages when initialMessages arrives (useChat doesn't re-init)
+  // Hydrate messages when history arrives
   useEffect(() => {
     if (initialMessages && initialMessages.length > 0) {
       setMessages(initialMessages);
     }
   }, [initialMessages, setMessages]);
+
+  // Wipe history button handler — exposed via window event from Sidebar
+  useEffect(() => {
+    const wipe = () => setMessages([]);
+    window.addEventListener("bo-chat-wipe", wipe);
+    return () => window.removeEventListener("bo-chat-wipe", wipe);
+  }, [setMessages]);
 
   const [input, setInput] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -183,27 +173,6 @@ export function Chat() {
         .join("\n\n———\n\n");
       finalText = `${ctx}\n\n———\n\n[Otázka uživatele:]\n${finalText || "(prosím shrň přílohu)"}`;
     }
-
-    // Create conversation on first message (no ?c=<id> in URL yet)
-    if (!conversationIdRef.current && user) {
-      try {
-        const title = text.trim().slice(0, 60) || "Nová konverzace";
-        const res = await fetch("/api/conversations", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-user-id": encodeURIComponent(user) },
-          body: JSON.stringify({ title }),
-        });
-        const data = await res.json();
-        if (data?.conversation?.id) {
-          conversationIdRef.current = data.conversation.id;
-          // Update URL without reload
-          window.history.replaceState(null, "", `/?c=${data.conversation.id}`);
-        }
-      } catch (e) {
-        console.warn("Failed to create conversation", e);
-      }
-    }
-
     sendMessage({ text: finalText });
     setInput("");
     clearAttachments();

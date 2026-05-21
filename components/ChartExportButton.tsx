@@ -12,7 +12,8 @@ function slug(s: string) {
 
 /**
  * Click-to-export-PDF button for any chart card.
- * Captures the referenced DOM node via html2canvas, embeds as image in a jsPDF doc.
+ * Uses html-to-image (SVG foreignObject under the hood) — supports
+ * modern CSS color functions (oklab/oklch) that html2canvas doesn't.
  */
 export function ChartExportButton({
   targetRef,
@@ -28,31 +29,46 @@ export function ChartExportButton({
     if (!targetRef.current) return;
     setBusy(true);
     try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import("html2canvas"),
+      const [{ toPng }, { jsPDF }] = await Promise.all([
+        import("html-to-image"),
         import("jspdf"),
       ]);
-      const canvas = await html2canvas(targetRef.current, {
-        backgroundColor: "#131418", // matches --surface
-        scale: 2,
-        logging: false,
-        useCORS: true,
+      // Render to PNG data URL @ 2x for retina sharpness
+      const dataUrl = await toPng(targetRef.current, {
+        pixelRatio: 2,
+        backgroundColor: "#131418",
+        cacheBust: true,
+        // Skip the export button itself so it's not in the screenshot
+        filter: (node) => {
+          if (node instanceof HTMLElement) {
+            return !node.dataset.exportSkip;
+          }
+          return true;
+        },
       });
-      const imgData = canvas.toDataURL("image/png");
-      // A4 landscape, fit width
+
+      // Measure to compute aspect ratio
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image preload failed"));
+      });
+
       const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 32;
       const maxW = pageW - margin * 2;
       const maxH = pageH - margin * 2 - 40;
-      const ratio = canvas.width / canvas.height;
+      const ratio = img.width / img.height;
       let w = maxW;
       let h = w / ratio;
       if (h > maxH) {
         h = maxH;
         w = h * ratio;
       }
+
       // Header
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
@@ -66,9 +82,11 @@ export function ChartExportButton({
         margin + 20,
       );
       doc.setTextColor(20, 20, 20);
-      doc.addImage(imgData, "PNG", margin, margin + 32, w, h);
+      doc.addImage(dataUrl, "PNG", margin, margin + 32, w, h);
+
       const date = new Date().toISOString().slice(0, 10);
       doc.save(`${slug(title)}-${date}.pdf`);
+
       setDone(true);
       setTimeout(() => setDone(false), 2500);
     } catch (e) {
@@ -87,6 +105,7 @@ export function ChartExportButton({
       disabled={busy}
       className="text-xs"
       title="Stáhnout graf jako PDF"
+      data-export-skip="true"
     >
       {busy ? (
         <Loader2 className="size-3 animate-spin" />
