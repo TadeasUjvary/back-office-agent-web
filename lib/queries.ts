@@ -433,7 +433,25 @@ export type WeeklyReport = {
   active: number;
   reserved: number;
   missing: number;
+  // Flexibility extensions (new)
+  period?: PeriodKind;
+  periodLabel?: string;
+  agentBreakdown?: { name: string; count: number; volume: number; commission: number }[];
+  districtBreakdown?: { district: string; count: number; volume: number }[];
+  recentSales?: { ref_code: string; address: string; price: number; agent: string; closed_at: string }[];
+  slides?: ReportSlide[];
+  includeSlides?: boolean;
+  slideCount?: number;
 };
+
+export type PeriodKind = "day" | "week" | "month" | "quarter";
+
+export type ReportSlide =
+  | { kind: "kpi-grid"; heading: string; subheading?: string; kpis: { label: string; value: string; sub?: string }[] }
+  | { kind: "bar-chart"; heading: string; subheading?: string; data: { label: string; value: number }[]; valueFormat?: "number" | "currency" }
+  | { kind: "pie-chart"; heading: string; subheading?: string; data: { label: string; value: number }[] }
+  | { kind: "text"; heading: string; subheading?: string; body?: string; bullets?: string[] }
+  | { kind: "table"; heading: string; subheading?: string; columns: string[]; rows: (string | number)[][] };
 
 function addISODays(iso: string, days: number) {
   const [y, m, d] = iso.split("-").map(Number);
@@ -442,12 +460,52 @@ function addISODays(iso: string, days: number) {
   return `${t2.getUTCFullYear()}-${String(t2.getUTCMonth() + 1).padStart(2, "0")}-${String(t2.getUTCDate()).padStart(2, "0")}`;
 }
 
-export function weeklyReport(weekEnding?: string): WeeklyReport {
+const CZ_MONTHS_GENITIVE = [
+  "", "ledna", "února", "března", "dubna", "května", "června",
+  "července", "srpna", "září", "října", "listopadu", "prosince",
+] as const;
+function shortDate(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d}. ${CZ_MONTHS_GENITIVE[m]} ${y}`;
+}
+
+/** Compute period [from, toExcl] from period kind + end date (default = yesterday). */
+function reportPeriodRange(period: PeriodKind, endDate?: string): { from: string; toExcl: string; label: string } {
+  const end = endDate ?? addISODays(TODAY_ISO, -1);
+  switch (period) {
+    case "day":
+      return { from: end, toExcl: addISODays(end, 1), label: shortDate(end) };
+    case "week": {
+      const start = addISODays(end, -6);
+      return { from: start, toExcl: addISODays(end, 1), label: `${shortDate(start)} – ${shortDate(end)}` };
+    }
+    case "month": {
+      const [y, m] = end.split("-").map(Number);
+      const start = `${y}-${String(m).padStart(2, "0")}-01`;
+      const toExcl = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+      return { from: start, toExcl, label: `${CZ_MONTHS_GENITIVE[m]} ${y}` };
+    }
+    case "quarter": {
+      const [y, m] = end.split("-").map(Number);
+      const q = Math.floor((m - 1) / 3);
+      const startM = q * 3 + 1;
+      const start = `${y}-${String(startM).padStart(2, "0")}-01`;
+      const toExcl = q === 3 ? `${y + 1}-01-01` : `${y}-${String(startM + 3).padStart(2, "0")}-01`;
+      return { from: start, toExcl, label: `Q${q + 1} ${y}` };
+    }
+  }
+}
+
+export function weeklyReport(weekEnding?: string, opts?: { period?: PeriodKind; slideCount?: number; includeSlides?: boolean }): WeeklyReport {
+  const period: PeriodKind = opts?.period ?? "week";
+  const slideCount = Math.max(1, Math.min(8, opts?.slideCount ?? 3));
+  const includeSlides = opts?.includeSlides ?? true;
+
   const { leads, sales, clients, properties, sources, agents } = loadAll();
-  const end = weekEnding ?? addISODays(TODAY_ISO, -1); // up to yesterday
-  const start = addISODays(end, -6);
-  const fromIso = start;
-  const toExcl = addISODays(end, 1);
+  const { from: fromIso, toExcl, label: periodLabel } = reportPeriodRange(period, weekEnding);
+  // For weekStart/weekEnd backward compat we keep these even though "week" naming is now period-agnostic
+  const start = fromIso;
+  const end = addISODays(toExcl, -1);
 
   const newLeads = leads.filter((l) => inRange(l.created_at, fromIso, toExcl)).length;
   const leadsSrcMap = new Map<number, number>();
@@ -486,11 +544,189 @@ export function weeklyReport(weekEnding?: string): WeeklyReport {
   const reserved = properties.filter((p) => p.status === "rezervováno").length;
   const missing = properties.filter((p) => p.has_renovation_data === 0).length;
 
+  // Additional breakdowns for slides 4-6
+  const propById = new Map(properties.map((p) => [p.id, p]));
+  const periodSales = sales.filter((s) => inRange(s.closed_at, fromIso, toExcl));
+
+  // Agent breakdown for the period
+  const aMap = new Map<number, { count: number; volume: number; commission: number }>();
+  for (const s of periodSales) {
+    const cur = aMap.get(s.agent_id) ?? { count: 0, volume: 0, commission: 0 };
+    aMap.set(s.agent_id, {
+      count: cur.count + 1,
+      volume: cur.volume + s.sale_price_czk,
+      commission: cur.commission + s.commission_czk,
+    });
+  }
+  const agentBreakdown = [...aMap.entries()]
+    .map(([id, v]) => ({ name: agentById.get(id) ?? "—", ...v }))
+    .sort((a, b) => b.count - a.count);
+
+  // District breakdown
+  const dMap = new Map<string, { count: number; volume: number }>();
+  for (const s of periodSales) {
+    const p = propById.get(s.property_id);
+    if (!p) continue;
+    const cur = dMap.get(p.district) ?? { count: 0, volume: 0 };
+    dMap.set(p.district, { count: cur.count + 1, volume: cur.volume + s.sale_price_czk });
+  }
+  const districtBreakdown = [...dMap.entries()]
+    .map(([district, v]) => ({ district, ...v }))
+    .sort((a, b) => b.volume - a.volume);
+
+  // Recent sales detail
+  const recentSales = periodSales
+    .sort((a, b) => (b.closed_at < a.closed_at ? -1 : 1))
+    .slice(0, 10)
+    .map((s) => {
+      const p = propById.get(s.property_id);
+      return {
+        ref_code: p?.ref_code ?? "—",
+        address: p?.address ?? "—",
+        price: s.sale_price_czk,
+        agent: agentById.get(s.agent_id) ?? "—",
+        closed_at: s.closed_at.slice(0, 10),
+      };
+    });
+
+  const slides: ReportSlide[] = includeSlides
+    ? buildSlides({
+        periodLabel,
+        slideCount,
+        newLeads, newClients, nSales, volume, commission,
+        topAgent, leadsBySource, pipeline,
+        active, reserved, missing,
+        agentBreakdown, districtBreakdown, recentSales,
+      })
+    : [];
+
   return {
     weekStart: start, weekEnd: end,
+    period, periodLabel,
     newLeads, newClients, nSales, volume, commission, topAgent,
     leadsBySource, pipeline, active, reserved, missing,
+    agentBreakdown, districtBreakdown, recentSales,
+    slides, includeSlides, slideCount,
   };
+}
+
+// Shared currency formatter mirror — keep deps minimal here
+function _czCurrency(n: number) {
+  const num = n.toLocaleString("cs-CZ").replace(/\s/g, " ");
+  return `${num} Kč`;
+}
+
+function buildSlides(d: {
+  periodLabel: string;
+  slideCount: number;
+  newLeads: number; newClients: number; nSales: number;
+  volume: number; commission: number;
+  topAgent: { name: string; count: number };
+  leadsBySource: { name: string; count: number }[];
+  pipeline: { status: string; count: number }[];
+  active: number; reserved: number; missing: number;
+  agentBreakdown: { name: string; count: number; volume: number; commission: number }[];
+  districtBreakdown: { district: string; count: number; volume: number }[];
+  recentSales: { ref_code: string; address: string; price: number; agent: string; closed_at: string }[];
+}): ReportSlide[] {
+  const all: ReportSlide[] = [];
+
+  // 1) KPI overview
+  all.push({
+    kind: "kpi-grid",
+    heading: `Shrnutí — ${d.periodLabel}`,
+    subheading: "Klíčové ukazatele za období",
+    kpis: [
+      { label: "Nové leady", value: String(d.newLeads) },
+      { label: "Prodeje", value: String(d.nSales), sub: d.topAgent.count > 0 ? `top: ${d.topAgent.name}` : undefined },
+      { label: "Objem", value: _czCurrency(d.volume) },
+      { label: "Provize", value: _czCurrency(d.commission) },
+    ],
+  });
+
+  // 2) Channels
+  if (d.leadsBySource.length > 0) {
+    all.push({
+      kind: "bar-chart",
+      heading: "Kanály akvizice leadů",
+      subheading: "Odkud chodí noví zájemci",
+      data: d.leadsBySource.slice(0, 8).map((s) => ({ label: s.name, value: s.count })),
+    });
+  }
+
+  // 3) Pipeline
+  if (d.pipeline.length > 0) {
+    all.push({
+      kind: "pie-chart",
+      heading: "Pipeline leadů",
+      subheading: "Stav konverzního trychtýře",
+      data: d.pipeline.map((p) => ({ label: p.status, value: p.count })),
+    });
+  }
+
+  // 4) Top agents
+  if (d.agentBreakdown.length > 0) {
+    all.push({
+      kind: "bar-chart",
+      heading: "Výkon makléřů",
+      subheading: "Počet prodejů za období",
+      data: d.agentBreakdown.slice(0, 8).map((a) => ({ label: a.name, value: a.count })),
+    });
+  }
+
+  // 5) Recent sales table
+  if (d.recentSales.length > 0) {
+    all.push({
+      kind: "table",
+      heading: "Detail prodejů",
+      subheading: `${d.recentSales.length} nejnovějších uzavřených transakcí`,
+      columns: ["Kód", "Adresa", "Cena", "Makléř", "Datum"],
+      rows: d.recentSales.map((s) => [
+        s.ref_code,
+        s.address,
+        _czCurrency(s.price),
+        s.agent,
+        s.closed_at,
+      ]),
+    });
+  }
+
+  // 6) District breakdown
+  if (d.districtBreakdown.length > 0) {
+    all.push({
+      kind: "pie-chart",
+      heading: "Prodeje dle lokality",
+      subheading: "Objemové rozdělení",
+      data: d.districtBreakdown.map((x) => ({ label: x.district, value: x.volume })),
+    });
+  }
+
+  // 7) Inzerce stav
+  all.push({
+    kind: "kpi-grid",
+    heading: "Stav inzerce",
+    subheading: "Současný portfolio snapshot",
+    kpis: [
+      { label: "Aktivní nabídky", value: String(d.active), sub: `rezervováno ${d.reserved}` },
+      { label: "Chybí data o rekonstrukci", value: String(d.missing), sub: "k auditu" },
+      { label: "Noví klienti", value: String(d.newClients), sub: "za období" },
+    ],
+  });
+
+  // 8) Priority & rizika
+  all.push({
+    kind: "text",
+    heading: "Priority na další období",
+    subheading: "Doporučené akce",
+    bullets: [
+      `Doplnit ${d.missing} nemovitostí bez dat o rekonstrukci — týká se inzerce.`,
+      `Posunout ${d.pipeline.find((p) => p.status === "kvalifikován")?.count ?? 0} kvalifikovaných leadů k prohlídce.`,
+      `Aktivně nabízíme ${d.active} nemovitostí (${d.reserved} rezervováno).`,
+      d.topAgent.count > 0 ? `Top makléř období — ${d.topAgent.name} (${d.topAgent.count} prodejů). Ocenit.` : "",
+    ].filter(Boolean),
+  });
+
+  return all.slice(0, d.slideCount);
 }
 
 // ─── 6. Market monitoring (briefings) ─────────────────────────────────────

@@ -74,15 +74,24 @@ export const tools = {
 
   weeklyReport: tool({
     description:
-      "Sestaví týdenní report pro vedení s klíčovými metrikami (nové leady, prodeje, objem, provize, pipeline, top makléř) a připraví 3-slidovou prezentaci. Použij pro otázky typu 'Shrň minulý týden' nebo 'Připrav prezentaci pro vedení'.",
+      "Sestaví manažerský report pro libovolné období + variabilní prezentaci. " +
+      "Použij pro: 'denní/týdenní/měsíční/kvartální report', 'shrň minulý týden', 'připrav prezentaci na 5 slidů', 'měsíční výsledky pro vedení'. " +
+      "Vrací KPI kartu + N slidů (1–8). Slidy ve fixním pořadí důležitosti: " +
+      "1) KPI overview, 2) Kanály leadů (bar), 3) Pipeline (pie), 4) Top makléři (bar), " +
+      "5) Detail prodejů (tabulka), 6) Lokality (pie), 7) Stav inzerce, 8) Priority. " +
+      "Více slidů → víc detailu. Default 3.",
     inputSchema: z.object({
-      weekEnding: z.string().optional()
-        .describe("Datum konce týdne ve formátu YYYY-MM-DD, default = včera"),
+      period: z.enum(["day", "week", "month", "quarter"]).default("week")
+        .describe("Délka období: day / week / month / quarter"),
+      endDate: z.string().optional()
+        .describe("Konec období YYYY-MM-DD (default = včera, tj. 2026-05-16 při week)"),
+      slideCount: z.number().int().min(1).max(8).default(3)
+        .describe("Počet slidů 1–8 (default 3)"),
       includeSlides: z.boolean().default(true)
-        .describe("Vykreslit i 3-slidovou prezentaci (default true)"),
+        .describe("Vykreslit slidy. Když false, jen KPI karta."),
     }),
-    execute: async ({ weekEnding, includeSlides }) => {
-      return { ...weeklyReport(weekEnding), includeSlides };
+    execute: async ({ period, endDate, slideCount, includeSlides }) => {
+      return weeklyReport(endDate, { period, slideCount, includeSlides });
     },
   }),
 

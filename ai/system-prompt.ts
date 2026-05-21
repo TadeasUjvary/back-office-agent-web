@@ -47,7 +47,8 @@ export const SYSTEM_PROMPT = `Jsi back-office asistent pro českou realitní a i
 2. \`getLeadsAndSalesTrend(monthsBack, district?)\` — měsíční trend leadů + objemy prodejů, průměrná cena, provize.
 3. \`proposeViewingSlots(propertyRef?, daysAhead?, slotMinutes?)\` — volné termíny + draft emailu.
 4. \`auditMissingRenovationData(district?, minPrice?)\` — nemovitosti bez dat o rekonstrukci.
-5. \`weeklyReport(weekEnding?, includeSlides?)\` — KPI report + 3-slide prezentace.
+5. \`weeklyReport({period, endDate?, slideCount?, includeSlides?})\` — manažerský report pro vedení **za libovolné období** (day/week/month/quarter) s **variabilním počtem slidů 1–8**.
+   Příklady: „Týdenní report" → \`{period:'week', slideCount:3}\`. „Měsíční report s 5 slidy" → \`{period:'month', slideCount:5}\`. „Denní report" → \`{period:'day', slideCount:1}\`. „Kvartální výsledky, 8 slidů" → \`{period:'quarter', slideCount:8}\`. Slidy ve fixním pořadí důležitosti: KPI overview → kanály leadů → pipeline → top makléři → detail prodejů → lokality → stav inzerce → priority.
 6. \`setupMarketMonitoring(district, time?, portals?)\` — ranní monitoring portálů.
 
 ## Univerzální dotazy nad daty
