@@ -1,7 +1,7 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   ArrowUp, Sparkles, User, Bot, Wrench, BarChart3, Mail, FileSearch,
@@ -46,22 +46,26 @@ const WEBSEARCH_KEY = "bo-agent-websearch";
 export function Chat() {
   const { user } = useAuth();
 
-  const [webSearch, setWebSearch] = useState(false);
+  const [webSearch, setWebSearchState] = useState(false);
   const webSearchRef = useRef(false);
 
-  // Restore toggle state from localStorage on mount
+  // Setter — updates ref SYNCHRONOUSLY so it's never out of sync with UI
+  const setWebSearch = useCallback((v: boolean) => {
+    webSearchRef.current = v;
+    setWebSearchState(v);
+    try { localStorage.setItem(WEBSEARCH_KEY, String(v)); } catch {}
+  }, []);
+
+  // Restore from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(WEBSEARCH_KEY);
-      if (stored === "true") setWebSearch(true);
+      if (stored === "true") {
+        webSearchRef.current = true;
+        setWebSearchState(true);
+      }
     } catch {}
   }, []);
-
-  // Persist + keep ref in sync
-  useEffect(() => {
-    webSearchRef.current = webSearch;
-    try { localStorage.setItem(WEBSEARCH_KEY, String(webSearch)); } catch {}
-  }, [webSearch]);
 
   const transport = useMemo(
     () =>

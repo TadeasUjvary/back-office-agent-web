@@ -62,6 +62,7 @@ export async function POST(req: Request) {
   const tools = webSearch
     ? ({ ...baseTools, webSearch: webSearchTool } as const)
     : baseTools;
+  console.log("[chat] webSearch=%s toolsCount=%d", webSearch, Object.keys(tools).length);
 
   const agent = new ToolLoopAgent({
     model: google("gemini-2.5-flash"),

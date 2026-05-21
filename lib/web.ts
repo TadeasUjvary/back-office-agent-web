@@ -82,14 +82,32 @@ export async function fetchWebUrl(url: string): Promise<{
       }
       await reader.cancel().catch(() => {});
     }
-    const body = new TextDecoder("utf-8").decode(
-      chunks.reduce((acc, c) => {
-        const merged = new Uint8Array(acc.length + c.length);
-        merged.set(acc, 0);
-        merged.set(c, acc.length);
-        return merged;
-      }, new Uint8Array()),
-    );
+    const buf = chunks.reduce((acc, c) => {
+      const merged = new Uint8Array(acc.length + c.length);
+      merged.set(acc, 0);
+      merged.set(c, acc.length);
+      return merged;
+    }, new Uint8Array());
+
+    // ── Charset detection: HTTP header → meta charset → BOM → utf-8 default
+    let charset = (contentType.match(/charset=([^;\s]+)/i)?.[1] ?? "").toLowerCase();
+    if (!charset) {
+      // Sniff <meta charset="..."> or <meta http-equiv="content-type" content="...; charset=...">
+      const head = new TextDecoder("latin1").decode(buf.slice(0, 4096));
+      const m =
+        head.match(/<meta[^>]+charset\s*=\s*["']?([a-zA-Z0-9\-_]+)/i)?.[1] ??
+        head.match(/<meta[^>]+content=["'][^"']*charset=([a-zA-Z0-9\-_]+)/i)?.[1];
+      if (m) charset = m.toLowerCase();
+    }
+    if (!charset) charset = "utf-8";
+    // Normalize aliases
+    if (charset === "win-1250" || charset === "cp1250" || charset === "x-cp1250") charset = "windows-1250";
+    let body: string;
+    try {
+      body = new TextDecoder(charset, { fatal: false }).decode(buf);
+    } catch {
+      body = new TextDecoder("utf-8", { fatal: false }).decode(buf);
+    }
 
     if (contentType.includes("application/json")) {
       const truncated = body.length > MAX_CHARS;
