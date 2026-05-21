@@ -1,13 +1,12 @@
 "use client";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export type CalendarEvent = {
   id: string;
   title: string;
   date: string;          // YYYY-MM-DD
   startTime: string;     // HH:MM
-  endTime?: string;      // HH:MM
+  endTime?: string;
   durationMinutes?: number;
   attendees?: string[];
   location?: string;
@@ -18,48 +17,66 @@ export type CalendarEvent = {
 
 type CalendarState = {
   events: CalendarEvent[];
-  seeded: boolean;
-  seed: (events: CalendarEvent[]) => void;
-  addEvent: (event: Omit<CalendarEvent, "id" | "source" | "createdAt"> & { id?: string; source?: "agent" | "seed" }) => CalendarEvent;
-  removeEvent: (id: string) => void;
-  clearAgent: () => void;
+  hydrated: boolean;
+  setEvents: (events: CalendarEvent[]) => void;
+  /** Add to local cache (server already persisted). */
+  addEventLocal: (event: CalendarEvent) => void;
+  removeEventLocal: (id: string) => void;
+  /** Fetch from /api/calendar (server-side Supabase). */
+  refresh: (userId: string) => Promise<void>;
+  /** Add event via /api/calendar POST + local cache. */
+  createEvent: (userId: string, event: Omit<CalendarEvent, "source" | "createdAt"> & { source?: CalendarEvent["source"] }) => Promise<CalendarEvent>;
+  /** Delete via /api/calendar/[id] DELETE. */
+  deleteEvent: (userId: string, id: string) => Promise<void>;
 };
 
-function eid() {
-  return `evt-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-export const useCalendarStore = create<CalendarState>()(
-  persist(
-    (set, get) => ({
-      events: [],
-      seeded: false,
-      seed: (events) => {
-        if (get().seeded) return;
-        set({ events: events.map((e) => ({ ...e, source: e.source ?? "seed" })), seeded: true });
-      },
-      addEvent: (input) => {
-        const event: CalendarEvent = {
-          id: input.id ?? eid(),
-          title: input.title,
-          date: input.date,
-          startTime: input.startTime,
-          endTime: input.endTime,
-          durationMinutes: input.durationMinutes,
-          attendees: input.attendees,
-          location: input.location,
-          notes: input.notes,
-          source: input.source ?? "agent",
-          createdAt: new Date().toISOString(),
-        };
-        // Idempotency: if same id exists, skip
-        if (get().events.some((e) => e.id === event.id)) return event;
-        set({ events: [...get().events, event] });
-        return event;
-      },
-      removeEvent: (id) => set({ events: get().events.filter((e) => e.id !== id) }),
-      clearAgent: () => set({ events: get().events.filter((e) => e.source !== "agent") }),
-    }),
-    { name: "bo-agent-calendar" },
-  ),
-);
+export const useCalendarStore = create<CalendarState>((set, get) => ({
+  events: [],
+  hydrated: false,
+  setEvents: (events) => set({ events, hydrated: true }),
+  addEventLocal: (event) => {
+    if (get().events.some((e) => e.id === event.id)) return;
+    set({ events: [...get().events, event] });
+  },
+  removeEventLocal: (id) => set({ events: get().events.filter((e) => e.id !== id) }),
+  refresh: async (userId) => {
+    if (!userId) return;
+    try {
+      const res = await fetch("/api/calendar", {
+        headers: { "x-user-id": encodeURIComponent(userId) },
+      });
+      const data = await res.json();
+      if (Array.isArray(data.events)) {
+        set({ events: data.events, hydrated: true });
+      } else {
+        set({ hydrated: true });
+      }
+    } catch (e) {
+      console.error("[calendar] refresh failed", e);
+      set({ hydrated: true });
+    }
+  },
+  createEvent: async (userId, event) => {
+    const res = await fetch("/api/calendar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-user-id": encodeURIComponent(userId) },
+      body: JSON.stringify(event),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error ?? "create failed");
+    const created = data.event as CalendarEvent;
+    get().addEventLocal(created);
+    return created;
+  },
+  deleteEvent: async (userId, id) => {
+    const res = await fetch(`/api/calendar/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { "x-user-id": encodeURIComponent(userId) },
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error ?? "delete failed");
+    }
+    get().removeEventLocal(id);
+  },
+}));

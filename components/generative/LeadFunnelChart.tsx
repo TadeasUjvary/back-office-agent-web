@@ -1,22 +1,30 @@
 "use client";
+import { useRef } from "react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import type { getLeadFunnel } from "@/lib/queries";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { ChartExportButton } from "@/components/ChartExportButton";
 
 type Data = ReturnType<typeof getLeadFunnel>;
 
 export function LeadFunnelChart({ data }: { data: Data }) {
   const max = Math.max(...data.stages.map((s) => s.count), 1);
+  const ref = useRef<HTMLDivElement>(null);
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
-        <p className="eyebrow">
-          Konverzní trychtýř
-          {data.district ? ` · ${data.district}` : ""}
-          {data.monthsBack ? ` · ${data.monthsBack} měs.` : ""}
-        </p>
-        <CardTitle className="mt-1">Pipeline leadů</CardTitle>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="eyebrow">
+              Konverzní trychtýř
+              {data.district ? ` · ${data.district}` : ""}
+              {data.monthsBack ? ` · ${data.monthsBack} měs.` : ""}
+            </p>
+            <CardTitle className="mt-1">Pipeline leadů</CardTitle>
+          </div>
+          <ChartExportButton targetRef={ref} title="Pipeline leadů" />
+        </div>
         <div className="mt-4 flex items-baseline gap-8 border-t border-hairline pt-4">
           <KPI label="Celkem" value={String(data.total)} />
           <KPI label="Konverze" value={`${data.conversionRate} %`} accent />

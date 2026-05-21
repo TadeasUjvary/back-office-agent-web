@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { MessageSquare, BellRing, Database, Plug, Sparkles, Calendar, LogOut } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
+import { ChatHistory } from "./ChatHistory";
 
 const NAV = [
   { href: "/", label: "Konverzace", icon: MessageSquare, shortcut: "1" },
@@ -71,7 +72,12 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto px-3 pb-4">
+      {/* Chat history */}
+      <div className="mt-3 border-t border-border pt-2 flex-1 min-h-0 overflow-hidden">
+        <ChatHistory />
+      </div>
+
+      <div className="border-t border-border px-3 py-3">
         {/* User pill */}
         {user && (
           <div className="mb-2 flex items-center gap-2.5 rounded-lg border border-border bg-surface/60 p-2">

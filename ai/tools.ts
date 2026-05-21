@@ -285,7 +285,7 @@ export const tools = {
     execute: async ({ url }) => fetchWebUrl(url),
   }),
 
-  // ─── READ Calendar (client-side store, server vrátí jen filtry) ─────────
+  // ─── READ Calendar — render-side čte z Zustand (synced from Supabase) ──
   getCalendar: tool({
     description:
       "Přečte události z Pepova kalendáře. Použij pro otázky jako 'Co mám zítra v kalendáři?', 'Jaké schůzky mám tento týden?', 'Co je naplánováno na 22.5.?'. " +
@@ -294,8 +294,12 @@ export const tools = {
     inputSchema: z.object({
       from: z.string().optional().describe("Začátek rozsahu YYYY-MM-DD"),
       to: z.string().optional().describe("Konec rozsahu YYYY-MM-DD (včetně)"),
-      query: z.string().optional().describe("Volitelný fulltext filtr nad title (např. 'prohlídka')"),
+      query: z.string().optional().describe("Volitelný fulltext filtr nad title"),
     }),
+    // Note: execute is server-side, but to keep things simple and avoid
+    // needing user_id in tool context, the component (CalendarRead) reads
+    // the live data from the client-side Zustand store (which is hydrated
+    // from Supabase on mount). Server returns filter spec only.
     execute: async ({ from, to, query }) => ({
       mode: "client-read" as const,
       filters: { from, to, query },

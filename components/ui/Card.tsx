@@ -1,9 +1,10 @@
 import { cn } from "@/lib/cn";
-import type { HTMLAttributes } from "react";
+import type { ComponentPropsWithRef } from "react";
 
-export function Card({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ref, ...p }: ComponentPropsWithRef<"div">) {
   return (
     <div
+      ref={ref}
       className={cn(
         "rounded-xl border border-border bg-surface lift",
         className,
@@ -12,10 +13,10 @@ export function Card({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
     />
   );
 }
-export function CardHeader({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
+export function CardHeader({ className, ...p }: ComponentPropsWithRef<"div">) {
   return <div className={cn("border-b border-border px-5 py-4", className)} {...p} />;
 }
-export function CardTitle({ className, ...p }: HTMLAttributes<HTMLHeadingElement>) {
+export function CardTitle({ className, ...p }: ComponentPropsWithRef<"h3">) {
   return (
     <h3
       className={cn(
@@ -26,6 +27,6 @@ export function CardTitle({ className, ...p }: HTMLAttributes<HTMLHeadingElement
     />
   );
 }
-export function CardBody({ className, ...p }: HTMLAttributes<HTMLDivElement>) {
+export function CardBody({ className, ...p }: ComponentPropsWithRef<"div">) {
   return <div className={cn("px-5 py-4", className)} {...p} />;
 }

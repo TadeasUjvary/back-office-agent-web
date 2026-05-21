@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import {
   PieChart, Pie, Cell, BarChart, Bar, LineChart, Line,
   ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
@@ -7,6 +8,7 @@ import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CHART_COLORS, CHART_GRID } from "@/lib/chart-colors";
 import { czCurrency } from "@/lib/format";
+import { ChartExportButton } from "@/components/ChartExportButton";
 
 type Point = { label: string; value: number };
 type Series = { name: string; data: Point[] };
@@ -27,6 +29,7 @@ function fmt(v: number, kind: Data["valueFormat"]) {
 }
 
 export function RenderChart({ data }: { data: Data }) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const valueFormat = data.valueFormat ?? "number";
   const multi = data.series && data.series.length > 0;
 
@@ -48,14 +51,17 @@ export function RenderChart({ data }: { data: Data }) {
     : [];
 
   return (
-    <Card>
+    <Card ref={cardRef}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
             {data.subtitle && <p className="eyebrow">{data.subtitle}</p>}
             <CardTitle className={data.subtitle ? "mt-1" : ""}>{data.title}</CardTitle>
           </div>
-          <Badge tone="info">{data.chartType}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge tone="info">{data.chartType}</Badge>
+            <ChartExportButton targetRef={cardRef} title={data.title} />
+          </div>
         </div>
       </CardHeader>
       <CardBody>

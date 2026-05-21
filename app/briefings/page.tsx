@@ -1,17 +1,88 @@
-import { listBriefings } from "@/lib/queries";
+"use client";
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/PageHeader";
+import { Plus, Loader2, RefreshCw } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import { czDate, czCurrency } from "@/lib/format";
 
-type Search = Promise<{ date?: string; district?: string }>;
+type BriefingListing = {
+  id: string;
+  portal: string;
+  title: string;
+  district: string;
+  type: string;
+  area_m2: number;
+  price_czk: number;
+  url: string;
+  published: string;
+};
+type Briefing = {
+  id: string;
+  date: string;
+  district: string;
+  listings: BriefingListing[];
+  generated_by: "manual" | "cron" | "seed";
+  created_at: string;
+};
 
-export default async function BriefingsPage({ searchParams }: { searchParams: Search }) {
-  const params = await searchParams;
-  const district = params.district ?? "Praha-Holešovice";
-  const briefings = listBriefings(district);
-  const selected = params.date
-    ? briefings.find((b) => b.date === params.date)
+export default function BriefingsPage() {
+  const { user, hydrated } = useAuth();
+  const searchParams = useSearchParams();
+  const district = searchParams.get("district") ?? "Praha-Holešovice";
+  const requestedDate = searchParams.get("date");
+
+  const [briefings, setBriefings] = useState<Briefing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(requestedDate);
+
+  const refresh = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/briefings?district=${encodeURIComponent(district)}`, {
+        headers: { "x-user-id": encodeURIComponent(user) },
+      });
+      const data = await res.json();
+      const rows = (data.briefings ?? []) as Briefing[];
+      setBriefings(rows);
+      if (!selectedDate && rows.length > 0) setSelectedDate(rows[0].date);
+    } catch {
+    } finally {
+      setLoading(false);
+    }
+  }, [user, district, selectedDate]);
+
+  useEffect(() => {
+    if (hydrated && user) refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, user, district]);
+
+  const generateNext = async () => {
+    if (!user) return;
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/briefings/advance", {
+        method: "POST",
+        headers: { "x-user-id": encodeURIComponent(user) },
+      });
+      const data = await res.json();
+      if (data.briefing) {
+        setSelectedDate(data.briefing.date);
+        await refresh();
+      }
+    } catch {
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const selected = selectedDate
+    ? briefings.find((b) => b.date === selectedDate)
     : briefings[0];
 
   return (
@@ -22,8 +93,15 @@ export default async function BriefingsPage({ searchParams }: { searchParams: Se
         description={
           <>
             Lokalita <span className="font-mono text-text">{district}</span> · denně v{" "}
-            <span className="font-mono">07:30</span> · simulace cron jobu nad mockovaným feedem portálů.
+            <span className="font-mono">07:30</span> · ukládáno do Supabase (
+            <span className="font-mono">briefings</span> tabulka).
           </>
+        }
+        right={
+          <Button onClick={generateNext} disabled={generating || !user}>
+            {generating ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+            Vygenerovat další den
+          </Button>
         }
       />
 
@@ -31,42 +109,72 @@ export default async function BriefingsPage({ searchParams }: { searchParams: Se
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
           {/* Day list */}
           <nav>
-            <p className="eyebrow mb-3">Posledních {briefings.length} dnů</p>
-            <ol className="space-y-1">
-              {briefings.map((b, idx) => {
-                const isSel = selected?.date === b.date;
-                return (
-                  <li key={b.date}>
-                    <a
-                      href={`/briefings?date=${b.date}&district=${encodeURIComponent(district)}`}
-                      className={`flex items-center justify-between rounded-md px-3 py-2 transition-colors ${
-                        isSel
-                          ? "border border-border-strong bg-surface text-text"
-                          : "border border-transparent text-text-muted hover:bg-surface/60 hover:text-text"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="font-mono text-[10px] tabular-nums text-text-dim w-6">
-                          {String(briefings.length - idx).padStart(2, "0")}
+            <div className="mb-3 flex items-center justify-between">
+              <p className="eyebrow">{briefings.length} dnů v DB</p>
+              <button
+                onClick={refresh}
+                disabled={loading}
+                className="rounded-md p-1.5 text-text-faint transition-colors hover:bg-surface hover:text-text"
+                title="Obnovit"
+              >
+                <RefreshCw className={`size-3 ${loading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+            {loading && briefings.length === 0 ? (
+              <p className="text-[12px] text-text-faint">načítám…</p>
+            ) : briefings.length === 0 ? (
+              <p className="text-[12px] text-text-faint">
+                Žádné briefingy. Klikněte „Vygenerovat další den".
+              </p>
+            ) : (
+              <ol className="space-y-1">
+                {briefings.map((b, idx) => {
+                  const isSel = selected?.id === b.id;
+                  return (
+                    <li key={b.id}>
+                      <button
+                        onClick={() => setSelectedDate(b.date)}
+                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
+                          isSel
+                            ? "border border-border-strong bg-surface text-text"
+                            : "border border-transparent text-text-muted hover:bg-surface/60 hover:text-text"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="font-mono text-[10px] tabular-nums text-text-dim w-6">
+                            {String(briefings.length - idx).padStart(2, "0")}
+                          </span>
+                          <span className="text-[13px]">{czDate(b.date)}</span>
                         </span>
-                        <span className="text-[13px]">{czDate(b.date)}</span>
-                      </span>
-                      <span className={`font-mono text-[13px] tabular-nums ${isSel ? "text-accent-bright" : "text-text-faint"}`}>
-                        {b.listings.length}
-                      </span>
-                    </a>
-                  </li>
-                );
-              })}
-            </ol>
+                        <span className="flex items-center gap-1.5">
+                          {b.generated_by === "manual" && (
+                            <Badge tone="info" className="text-[9px]">nový</Badge>
+                          )}
+                          <span className={`font-mono text-[13px] tabular-nums ${isSel ? "text-accent-bright" : "text-text-faint"}`}>
+                            {b.listings.length}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
           </nav>
 
           {/* Selected day detail */}
           {selected ? (
             <Card>
               <CardHeader>
-                <p className="eyebrow">Briefing</p>
-                <CardTitle className="mt-1">{czDate(selected.date)}</CardTitle>
+                <div className="flex items-baseline justify-between">
+                  <div>
+                    <p className="eyebrow">Briefing</p>
+                    <CardTitle className="mt-1">{czDate(selected.date)}</CardTitle>
+                  </div>
+                  <Badge tone={selected.generated_by === "manual" ? "info" : "default"}>
+                    {selected.generated_by === "manual" ? "vygenerováno tlačítkem" : selected.generated_by}
+                  </Badge>
+                </div>
                 <p className="mt-1 font-mono text-[10px] text-text-faint">
                   Sreality.cz · Bezrealitky.cz · Reality.iDNES.cz
                 </p>
@@ -87,7 +195,7 @@ export default async function BriefingsPage({ searchParams }: { searchParams: Se
                       </div>
                       <div>
                         <p className="eyebrow">Průměrná cena</p>
-                        <p className="mt-1 text-[20px] font-semibold leading-none tracking-[-0.02em] text-text">
+                        <p className="mt-1 text-[20px] font-semibold leading-none tracking-[-0.02em] text-text whitespace-nowrap">
                           {czCurrency(
                             Math.round(
                               selected.listings.reduce((a, l) => a + l.price_czk, 0)
@@ -124,7 +232,11 @@ export default async function BriefingsPage({ searchParams }: { searchParams: Se
               </CardBody>
             </Card>
           ) : (
-            <Card><CardBody className="text-sm text-text-muted">Žádné briefingy.</CardBody></Card>
+            <Card>
+              <CardBody className="text-sm text-text-muted">
+                {loading ? "Načítám…" : 'Žádné briefingy. Klikněte „Vygenerovat další den".'}
+              </CardBody>
+            </Card>
           )}
         </div>
       </div>

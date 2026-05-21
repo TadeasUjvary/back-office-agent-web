@@ -1,20 +1,21 @@
 "use client";
 import { useEffect } from "react";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import { useCalendarStore } from "@/lib/calendar-store";
-import { loadSeedEvents } from "@/lib/calendar-seed";
 
-function CalendarSeeder() {
+function CalendarHydrator() {
+  const { user, hydrated } = useAuth();
   useEffect(() => {
-    useCalendarStore.getState().seed(loadSeedEvents());
-  }, []);
+    if (!hydrated || !user) return;
+    useCalendarStore.getState().refresh(user);
+  }, [hydrated, user]);
   return null;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <CalendarSeeder />
+      <CalendarHydrator />
       {children}
     </AuthProvider>
   );

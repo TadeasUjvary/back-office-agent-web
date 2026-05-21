@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import {
   PieChart, Pie, Cell, BarChart, Bar, ResponsiveContainer,
   XAxis, YAxis, Tooltip, CartesianGrid,
@@ -6,6 +7,7 @@ import {
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CHART_COLORS, CHART_GRID } from "@/lib/chart-colors";
+import { ChartExportButton } from "@/components/ChartExportButton";
 import type { NewClientsResult } from "@/lib/queries";
 
 export function ClientsBySourceChart({
@@ -25,15 +27,19 @@ export function ClientsBySourceChart({
     );
   }
   const top = data.bySource[0];
+  const ref = useRef<HTMLDivElement>(null);
   return (
-    <Card>
+    <Card ref={ref}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="eyebrow">{data.quarter} {data.year} · akvizice</p>
             <CardTitle className="mt-1">Noví klienti dle zdroje</CardTitle>
           </div>
-          <Badge tone="info">{chartType}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge tone="info">{chartType}</Badge>
+            <ChartExportButton targetRef={ref} title={`Noví klienti dle zdroje — ${data.quarter} ${data.year}`} />
+          </div>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-x-6 border-t border-border pt-4">
           <Kpi label="Celkem" value={String(data.total)} />

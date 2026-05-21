@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/PageHeader";
 import { Sparkles, Trash2, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCalendarStore, type CalendarEvent } from "@/lib/calendar-store";
+import { useAuth } from "@/lib/auth";
 import { czDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
@@ -38,8 +39,13 @@ function dowShort(iso: string) {
 }
 
 export default function CalendarPage() {
+  const { user } = useAuth();
   const events = useCalendarStore((s) => s.events);
-  const removeEvent = useCalendarStore((s) => s.removeEvent);
+  const deleteEvent = useCalendarStore((s) => s.deleteEvent);
+  const removeEvent = (id: string) => {
+    if (!user) return;
+    deleteEvent(user, id).catch((e) => console.warn("[calendar] delete failed", e));
+  };
 
   const [weekStart, setWeekStart] = useState(() => startOfWeek(TODAY_ISO));
 

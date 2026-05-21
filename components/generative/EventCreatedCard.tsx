@@ -6,26 +6,32 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CalendarPlus, CheckCircle2, ExternalLink, MapPin, Users } from "lucide-react";
 import { useCalendarStore } from "@/lib/calendar-store";
+import { useAuth } from "@/lib/auth";
 import type { mockAddCalendarEvent } from "@/lib/actions";
 import { czDate } from "@/lib/format";
 
 type Data = ReturnType<typeof mockAddCalendarEvent>;
 
 export function EventCreatedCard({ data }: { data: Data }) {
-  // Add to Zustand calendar store on mount (idempotent via id)
+  const { user } = useAuth();
+
+  // Persist to Supabase + add to local cache on mount (idempotent via id)
   useEffect(() => {
-    useCalendarStore.getState().addEvent({
-      id: data.eventId,
-      title: data.title,
-      date: data.date,
-      startTime: data.startTime,
-      durationMinutes: data.durationMinutes,
-      attendees: data.attendees,
-      location: data.location !== "—" ? data.location : undefined,
-      notes: data.notes,
-      source: "agent",
-    });
-  }, [data]);
+    if (!user) return;
+    useCalendarStore
+      .getState()
+      .createEvent(user, {
+        id: data.eventId,
+        title: data.title,
+        date: data.date,
+        startTime: data.startTime,
+        durationMinutes: data.durationMinutes,
+        attendees: data.attendees,
+        location: data.location !== "—" ? data.location : undefined,
+        notes: data.notes,
+      })
+      .catch((e) => console.warn("[calendar] persist failed", e));
+  }, [data, user]);
 
   return (
     <Card>
