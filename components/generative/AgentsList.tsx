@@ -70,7 +70,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-2 md:block">
       <dt className="font-mono text-[9px] uppercase tracking-wider text-text-dim">{label}</dt>
-      <dd className="font-mono text-[12px] tabular-nums text-text md:mt-0.5">{value}</dd>
+      <dd className="font-mono text-[12px] tabular-nums whitespace-nowrap text-text md:mt-0.5">{value}</dd>
     </div>
   );
 }

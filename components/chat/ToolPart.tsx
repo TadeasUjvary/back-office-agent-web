@@ -16,6 +16,8 @@ import {
 import { EventCreatedCard } from "@/components/generative/EventCreatedCard";
 import { WebSearchResult } from "@/components/generative/WebSearchResult";
 import { ExportDownloadCard } from "@/components/generative/ExportDownloadCard";
+import { RenderChart } from "@/components/generative/RenderChart";
+import { CalendarRead } from "@/components/generative/CalendarRead";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { IntegrationBadge } from "@/components/IntegrationBadge";
@@ -55,6 +57,8 @@ const TOOL_LABELS: Record<string, string> = {
   "tool-fetchUrl": "Stahuji obsah z webu…",
   "tool-webSearch": "Hledám na Googlu…",
   "tool-exportData": "Připravuji export souboru…",
+  "tool-renderChart": "Renderuji graf…",
+  "tool-getCalendar": "Čtu kalendář…",
 };
 
 export function ToolPart({ part }: { part: ToolUIPart }) {
@@ -316,6 +320,12 @@ export function ToolPart({ part }: { part: ToolUIPart }) {
       break;
     case "tool-exportData":
       component = <ExportDownloadCard data={output} />;
+      break;
+    case "tool-renderChart":
+      component = <RenderChart data={output} />;
+      break;
+    case "tool-getCalendar":
+      component = <CalendarRead data={output} />;
       break;
     default:
       component = (

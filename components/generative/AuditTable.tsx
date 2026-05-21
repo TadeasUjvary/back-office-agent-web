@@ -77,7 +77,7 @@ export function AuditTable({ data }: { data: AuditResult }) {
                   <td className="px-3 py-2 font-mono text-xs">{r.ref_code}</td>
                   <td className="px-3 py-2">{r.address}</td>
                   <td className="px-3 py-2 text-zinc-600">{r.type}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{czCurrency(r.price_czk)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums whitespace-nowrap">{czCurrency(r.price_czk)}</td>
                   <td className="px-3 py-2">
                     <Badge tone={statusTone(r.status)}>{r.status}</Badge>
                   </td>

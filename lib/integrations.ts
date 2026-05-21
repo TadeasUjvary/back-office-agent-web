@@ -100,6 +100,10 @@ export const TOOL_SOURCES: Record<string, IntegrationId[]> = {
   webSearch: [],
   // Exports
   exportData: ["drive"],
+  // Generic chart — sources jen kontextové
+  renderChart: ["sheets"],
+  // Calendar read
+  getCalendar: ["calendar"],
 };
 
 export function sourcesFor(toolName: string): Integration[] {

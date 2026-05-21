@@ -26,5 +26,29 @@ export async function POST(req: Request) {
   return createAgentUIStreamResponse({
     agent,
     uiMessages: messages,
-  });
+    onStepFinish: ((event: unknown) => {
+      const e = event as {
+        finishReason?: string;
+        content?: unknown[];
+        usage?: { outputTokens?: number; inputTokens?: number };
+        warnings?: unknown[];
+      };
+      const partCount = e.content?.length ?? 0;
+      const out = e.usage?.outputTokens ?? 0;
+      if (e.finishReason === "stop" && partCount === 0 && out === 0) {
+        console.warn("[chat] EMPTY STOP — agent returned nothing", {
+          reason: e.finishReason,
+          partCount,
+          tokens: e.usage,
+          warnings: e.warnings,
+        });
+      }
+      // Always log basic step info for production debugging
+      console.log("[chat step]", {
+        reason: e.finishReason,
+        parts: partCount,
+        out,
+      });
+    }) as never,
+  } as never);
 }

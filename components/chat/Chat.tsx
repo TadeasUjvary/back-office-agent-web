@@ -40,10 +40,25 @@ function fmtBytes(n: number) {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
+const WEBSEARCH_KEY = "bo-agent-websearch";
+
 export function Chat() {
   const [webSearch, setWebSearch] = useState(false);
   const webSearchRef = useRef(false);
-  useEffect(() => { webSearchRef.current = webSearch; }, [webSearch]);
+
+  // Restore toggle state from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(WEBSEARCH_KEY);
+      if (stored === "true") setWebSearch(true);
+    } catch {}
+  }, []);
+
+  // Persist + keep ref in sync
+  useEffect(() => {
+    webSearchRef.current = webSearch;
+    try { localStorage.setItem(WEBSEARCH_KEY, String(webSearch)); } catch {}
+  }, [webSearch]);
 
   const transport = useMemo(
     () =>
@@ -147,6 +162,23 @@ export function Chat() {
                 Chyba: {error.message}
               </div>
             )}
+            {/* Empty-stop hint */}
+            {(() => {
+              if (status !== "ready" || messages.length === 0) return null;
+              const last = messages[messages.length - 1];
+              if (last.role !== "assistant") return null;
+              const hasContent = last.parts.some((p) => {
+                if (p.type === "text") return ((p as { text?: string }).text ?? "").trim().length > 0;
+                if (typeof p.type === "string" && p.type.startsWith("tool-")) return true;
+                return false;
+              });
+              if (hasContent) return null;
+              return (
+                <div className="rounded-lg border border-warn/30 bg-warn-soft px-4 py-3 text-[13px] text-warn">
+                  Agent neodpověděl — zkuste přeformulovat dotaz, nebo zkontrolujte limit Gemini API. (Empty stop)
+                </div>
+              );
+            })()}
             <div ref={endRef} />
           </div>
         )}
@@ -161,9 +193,9 @@ export function Chat() {
             submit(input);
           }}
         >
-          {/* Web search toggle */}
-          <div className="mb-2 flex items-center justify-between px-1">
-            <label className="flex items-center gap-2.5 cursor-pointer">
+          {/* Web search toggle — always visible, min height to prevent collapse */}
+          <div className="mb-2 flex min-h-[28px] flex-wrap items-center justify-between gap-2 px-1">
+            <label className="flex shrink-0 items-center gap-2.5 cursor-pointer">
               <Switch
                 checked={webSearch}
                 onChange={setWebSearch}

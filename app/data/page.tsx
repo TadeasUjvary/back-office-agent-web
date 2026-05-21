@@ -53,7 +53,7 @@ export default function DataPage() {
                     <Td><span className="font-mono text-[12px] text-text-2">{p.ref_code}</span></Td>
                     <Td>{p.address}</Td>
                     <Td><span className="text-text-muted">{p.type}</span></Td>
-                    <Td align="right"><span className="font-mono tabular-nums">{czCurrency(p.price_czk)}</span></Td>
+                    <Td align="right"><span className="font-mono tabular-nums whitespace-nowrap">{czCurrency(p.price_czk)}</span></Td>
                     <Td>
                       <Badge tone={p.status === "prodáno" ? "success" : p.status === "rezervováno" ? "info" : "warn"}>
                         {p.status}

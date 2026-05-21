@@ -285,6 +285,55 @@ export const tools = {
     execute: async ({ url }) => fetchWebUrl(url),
   }),
 
+  // ─── READ Calendar (client-side store, server vrátí jen filtry) ─────────
+  getCalendar: tool({
+    description:
+      "Přečte události z Pepova kalendáře. Použij pro otázky jako 'Co mám zítra v kalendáři?', 'Jaké schůzky mám tento týden?', 'Co je naplánováno na 22.5.?'. " +
+      "Pro hledání volných slotů použij místo toho `proposeViewingSlots`. " +
+      "Pokud `from` a `to` zadáno, vrátí události v rozsahu; jinak vrátí všechny nadcházející.",
+    inputSchema: z.object({
+      from: z.string().optional().describe("Začátek rozsahu YYYY-MM-DD"),
+      to: z.string().optional().describe("Konec rozsahu YYYY-MM-DD (včetně)"),
+      query: z.string().optional().describe("Volitelný fulltext filtr nad title (např. 'prohlídka')"),
+    }),
+    execute: async ({ from, to, query }) => ({
+      mode: "client-read" as const,
+      filters: { from, to, query },
+    }),
+  }),
+
+  // ─── GENERIC CHART — libovolný pie/bar/line graf ───────────────────────
+  renderChart: tool({
+    description:
+      "Vykreslí libovolný graf (pie / bar / line) z jakýchkoli dat. Použij když uživatel chce graf, který nezvládají specifické tooly (např. 'koláčový graf prodejů per makléř', 'sloupcový graf top 5 lokalit dle objemu', 'line graf cen za 3 měsíce'). " +
+      "**Workflow:** nejdřív zavolej query tool (`listAgents`, `querySales`, `queryProperties`…), z výsledku poskládej `data` pole a vyrender. " +
+      "**Schema:** `data` je pole `{label: string, value: number}`. Pro multi-series bar/line použij `series` (pole `{name, data}`).",
+    inputSchema: z.object({
+      chartType: z.enum(["pie", "bar", "line"]).describe("Typ grafu"),
+      title: z.string().describe("Nadpis grafu"),
+      subtitle: z.string().optional().describe("Volitelný podtitul/kontext"),
+      data: z
+        .array(z.object({
+          label: z.string().describe("Popisek (osa X u bar/line, řez u pie)"),
+          value: z.number().describe("Hodnota"),
+        }))
+        .min(1)
+        .describe("Datové body pro graf"),
+      series: z
+        .array(z.object({
+          name: z.string(),
+          data: z.array(z.object({ label: z.string(), value: z.number() })),
+        }))
+        .optional()
+        .describe("Více sérií (jen pro bar/line). Pokud zadáno, `data` se ignoruje."),
+      valueFormat: z
+        .enum(["number", "currency", "percent"])
+        .default("number")
+        .describe("Formátování hodnot v tooltipu/labelu"),
+    }),
+    execute: async (args) => args,
+  }),
+
   // ─── EXPORT — reálné PDF / XLSX ke stažení ─────────────────────────────
   exportData: tool({
     description:

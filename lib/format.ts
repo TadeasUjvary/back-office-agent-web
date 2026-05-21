@@ -6,12 +6,16 @@ const CZ_DAYS = [
   "neděle", "pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota",
 ] as const;
 
+const NBSP = " ";
+
+/** Czech currency with non-breaking spaces — never wraps mid-number. */
 export function czCurrency(n: number) {
-  return n.toLocaleString("cs-CZ").replace(/ /g, " ") + " Kč";
+  const num = n.toLocaleString("cs-CZ").replace(/\s/g, NBSP);
+  return `${num}${NBSP}Kč`;
 }
 
 export function czNumber(n: number) {
-  return n.toLocaleString("cs-CZ").replace(/ /g, " ");
+  return n.toLocaleString("cs-CZ").replace(/\s/g, NBSP);
 }
 
 /** ISO date (YYYY-MM-DD) → "středa 14. května 2026" */
