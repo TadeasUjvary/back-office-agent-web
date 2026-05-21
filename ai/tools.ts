@@ -288,15 +288,35 @@ export const tools = {
   // ─── EXPORT — reálné PDF / XLSX ke stažení ─────────────────────────────
   exportData: tool({
     description:
-      "Připraví data k reálnému stažení jako PDF nebo Excel soubor. Použij když chce uživatel data 'stáhnout', 'vyexportovat', 'poslat v PDF/Excelu'. Render karta s tlačítkem 'Stáhnout' — soubor se vygeneruje v prohlížeči (jspdf / xlsx) a stáhne. Pro tabulky použij kind='table', pro souvislý text 'text', pro vícesekční report 'report'.",
+      "Připraví data k reálnému stažení jako PDF nebo Excel. Použij když uživatel řekne 'vyexportuj', 'vygeneruj PDF', 'pošli mi to v Excelu', 'stáhni'. **DŮLEŽITÉ — schema:**\n" +
+      "- `content.columns` MUSÍ být POLE PROSTÝCH ŘETĚZCŮ jako [\"Kód\", \"Adresa\", \"Cena\"], NIKDY ne pole objektů.\n" +
+      "- `content.rows` MUSÍ být POLE POLÍ (2D array) jako [[\"RH-1001\", \"Praha\", 3500000], [\"RH-1002\", \"Brno\", 4200000]], NIKDY ne pole objektů.\n" +
+      "- Pořadí hodnot v `rows[i]` musí odpovídat pořadí `columns`.\n" +
+      "Použij `kind:'table'` pro tabulky, `kind:'text'` pro souvislý text, `kind:'report'` pro multi-sekční report. Po zavolání **napiš max 1 krátkou větu** (např. 'Hotovo, stáhněte kliknutím.') — nic víc, žádné shrnutí dat, žádné další tooly.",
     inputSchema: z.object({
       format: z.enum(["pdf", "excel"]).describe("Formát stahovaného souboru"),
       title: z.string().describe("Název dokumentu/souboru (bez přípony)"),
       content: z.discriminatedUnion("kind", [
         z.object({
           kind: z.literal("table"),
-          columns: z.array(z.string()).describe("Hlavička sloupců"),
-          rows: z.array(z.array(z.union([z.string(), z.number()]))).describe("Řádky (2D pole)"),
+          columns: z
+            .array(
+              z.union([
+                z.string(),
+                // Tolerant fallback if model sends [{title, id}] — normalized in execute
+                z.object({ title: z.string(), id: z.string().optional() }),
+              ]),
+            )
+            .describe("Hlavička sloupců — pole stringů. Např. [\"Kód\", \"Adresa\", \"Cena\"]."),
+          rows: z
+            .array(
+              z.union([
+                z.array(z.union([z.string(), z.number(), z.null()])),
+                // Tolerant fallback: row as object → normalized to array using `columns` order
+                z.record(z.string(), z.union([z.string(), z.number(), z.null()])),
+              ]),
+            )
+            .describe("Řádky — pole polí. Např. [[\"RH-1001\", \"Praha\", 3500000]]."),
           summary: z.string().optional().describe("Krátké shrnutí pod tabulkou"),
         }),
         z.object({
@@ -308,15 +328,45 @@ export const tools = {
           sections: z.array(z.object({
             heading: z.string(),
             body: z.string(),
-          })).describe("Sekce reportu, každá s nadpisem a obsahem"),
+          })).describe("Sekce reportu"),
         }),
       ]),
     }),
-    // execute jen předá vstup do output — render & generování souboru na klientovi
-    execute: async (args) => ({
-      ...args,
-      preparedAt: new Date().toISOString(),
-    }),
+    execute: async (args) => {
+      // Normalize tolerant inputs to strict shape expected by the client renderer
+      if (args.content.kind === "table") {
+        const rawCols = args.content.columns;
+        const cols: string[] = rawCols.map((c) =>
+          typeof c === "string" ? c : (c.title ?? c.id ?? ""),
+        );
+        const ids: string[] = rawCols.map((c, i) =>
+          typeof c === "string" ? c : (c.id ?? c.title ?? `col${i}`),
+        );
+        const rawRows = args.content.rows as Array<
+          (string | number | null)[] | Record<string, string | number | null>
+        >;
+        const rows: (string | number)[][] = rawRows.map((r) => {
+          if (Array.isArray(r)) return r.map((v) => (v == null ? "" : v));
+          // Object row → align with column ids/titles
+          return ids.map((key, i) => {
+            const v = r[key] ?? r[cols[i]] ?? "";
+            return v == null ? "" : v;
+          });
+        });
+        return {
+          format: args.format,
+          title: args.title,
+          content: { kind: "table" as const, columns: cols, rows, summary: args.content.summary },
+          preparedAt: new Date().toISOString(),
+        };
+      }
+      return {
+        format: args.format,
+        title: args.title,
+        content: args.content,
+        preparedAt: new Date().toISOString(),
+      };
+    },
   }),
 } as const;
 

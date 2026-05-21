@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // pdf-parse loads test fixtures via fs at import time → keep it external (server-only)
-  serverExternalPackages: ["pdf-parse"],
+  // unpdf is server-only for PDF text extraction
+  serverExternalPackages: ["unpdf"],
 };
 
 export default nextConfig;
