@@ -1,25 +1,24 @@
 type Props = {
-  num: string;
   eyebrow: string;
   title: React.ReactNode;
   description?: React.ReactNode;
   right?: React.ReactNode;
 };
 
-export function PageHeader({ num, eyebrow, title, description, right }: Props) {
+export function PageHeader({ eyebrow, title, description, right }: Props) {
   return (
-    <header className="border-b border-hairline px-10 py-9">
+    <header className="border-b border-border bg-bg/80 px-8 py-7 backdrop-blur-sm">
       <div className="mx-auto max-w-6xl">
         <div className="flex items-start justify-between gap-8">
           <div className="flex-1">
-            <p className="font-mono text-[11px] uppercase tracking-wider text-copper">
-              {num} · <span className="text-ink-muted">{eyebrow}</span>
+            <p className="text-[11px] font-medium uppercase tracking-wider text-text-faint">
+              {eyebrow}
             </p>
-            <h1 className="display mt-3 text-[44px] leading-[1.02] tracking-tight text-ink">
+            <h1 className="mt-2 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-text">
               {title}
             </h1>
             {description && (
-              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+              <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-text-muted">
                 {description}
               </p>
             )}

@@ -12,10 +12,10 @@ export function TrendChart({ data }: { data: TrendResult }) {
     <Card>
       <CardHeader>
         <p className="eyebrow">
-          Vývoj · posledních {data.monthsBack} měsíců{data.district ? ` · ${data.district}` : ""}
+          Posledních {data.monthsBack} měsíců{data.district ? ` · ${data.district}` : ""}
         </p>
         <CardTitle className="mt-1">Leady &amp; prodeje</CardTitle>
-        <div className="mt-5 grid grid-cols-2 gap-6 border-t border-hairline pt-4 md:grid-cols-5">
+        <div className="mt-4 grid grid-cols-3 gap-4 border-t border-border pt-4 md:grid-cols-5">
           <Kpi label="Leadů" value={String(data.totalLeads)} />
           <Kpi label="Prodejů" value={String(data.totalSales)} />
           <Kpi label="Objem" value={czCurrency(data.totalVolume)} small />
@@ -30,15 +30,8 @@ export function TrendChart({ data }: { data: TrendResult }) {
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip
-                contentStyle={{
-                  background: "#FBF8F1",
-                  border: "1px solid #C9BFAA",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "11px",
-                }}
-              />
-              <Legend wrapperStyle={{ fontFamily: "var(--font-mono)", fontSize: 11 }} />
+              <Tooltip />
+              <Legend wrapperStyle={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#A1A1AA" }} />
               <Line
                 type="monotone"
                 dataKey="leads"
@@ -51,9 +44,9 @@ export function TrendChart({ data }: { data: TrendResult }) {
                 type="monotone"
                 dataKey="sales"
                 name="Prodeje"
-                stroke={CHART_COLORS[3]}
+                stroke={CHART_COLORS[2]}
                 strokeWidth={2}
-                dot={{ r: 3, fill: CHART_COLORS[3] }}
+                dot={{ r: 3, fill: CHART_COLORS[2] }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -68,13 +61,13 @@ function Kpi({ label, value, sub, small }: { label: string; value: string; sub?:
     <div>
       <p className="eyebrow">{label}</p>
       <p
-        className={`display mt-1 ${
-          small ? "text-[16px]" : "text-[24px]"
-        } leading-tight tracking-tight text-ink`}
+        className={`mt-1 font-semibold leading-tight tracking-[-0.02em] text-text ${
+          small ? "text-[14px]" : "text-[22px]"
+        }`}
       >
         {value}
       </p>
-      {sub && <p className="font-mono text-[10px] text-ink-faint">{sub}</p>}
+      {sub && <p className="mt-0.5 font-mono text-[10px] text-text-faint">{sub}</p>}
     </div>
   );
 }

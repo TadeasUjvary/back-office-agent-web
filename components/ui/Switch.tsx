@@ -21,15 +21,17 @@ export function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-5 w-10 shrink-0 cursor-pointer items-center border transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-copper",
-        checked ? "border-copper bg-copper" : "border-hairline-strong bg-paper-deep",
+        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border transition-colors",
+        checked
+          ? "border-accent bg-accent"
+          : "border-border-strong bg-surface-3",
         disabled && "cursor-not-allowed opacity-50",
       )}
     >
       <span
         className={cn(
-          "inline-block size-3.5 transform bg-paper transition-transform",
-          checked ? "translate-x-5" : "translate-x-1",
+          "inline-block size-3.5 transform rounded-full bg-white shadow transition-transform",
+          checked ? "translate-x-[18px]" : "translate-x-0.5",
         )}
       />
     </button>

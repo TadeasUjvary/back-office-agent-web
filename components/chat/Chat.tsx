@@ -1,42 +1,31 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Sparkles, User, Bot, Wrench, BarChart3, Calendar, Mail, FileSearch, Presentation, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ToolPart } from "./ToolPart";
 import { cn } from "@/lib/cn";
 
-const SUGGESTED_PROMPTS = [
-  {
-    cat: "Reporting",
-    label: "Q1 2026 — klienti dle zdroje",
-    text: "Jaké nové klienty máme za 1. kvartál 2026? Odkud přišli? Můžeš to znázornit graficky?",
-  },
-  {
-    cat: "Reporting",
-    label: "Trend leadů & prodejů, 6M",
-    text: "Vytvoř graf vývoje počtu leadů a prodaných nemovitostí za posledních 6 měsíců.",
-  },
-  {
-    cat: "Operations",
-    label: "Termín prohlídky — RH-1042",
-    text: "Napiš e-mail pro zájemce o nemovitost RH-1042 a doporuč mu termín prohlídky na základě mé dostupnosti v kalendáři.",
-  },
-  {
-    cat: "Operations",
-    label: "Audit chybějících dat",
-    text: "Najdi nemovitosti, u kterých nám v systému chybí data o rekonstrukci a stavebních úpravách a připrav jejich seznam k doplnění.",
-  },
-  {
-    cat: "Executive",
-    label: "Týdenní report + 3 slidy",
-    text: "Shrň výsledky minulého týdne do krátkého reportu pro vedení a připrav k tomu prezentaci se třemi slidy.",
-  },
-  {
-    cat: "Monitoring",
-    label: "Ranní briefing — Holešovice",
-    text: "Sleduj všechny hlavní realitní servery a každé ráno mě informuj o nových nabídkách v lokalitě Praha-Holešovice.",
-  },
+type Suggestion = {
+  icon: typeof Sparkles;
+  cat: string;
+  label: string;
+  text: string;
+};
+
+const SUGGESTED_PROMPTS: Suggestion[] = [
+  { icon: BarChart3, cat: "Reporting", label: "Q1 2026 — klienti dle zdroje",
+    text: "Jaké nové klienty máme za 1. kvartál 2026? Odkud přišli? Můžeš to znázornit graficky?" },
+  { icon: BarChart3, cat: "Reporting", label: "Trend leadů & prodejů, 6M",
+    text: "Vytvoř graf vývoje počtu leadů a prodaných nemovitostí za posledních 6 měsíců." },
+  { icon: Mail, cat: "Operations", label: "Termín prohlídky — RH-1042",
+    text: "Napiš e-mail pro zájemce o nemovitost RH-1042 a doporuč mu termín prohlídky na základě mé dostupnosti v kalendáři." },
+  { icon: FileSearch, cat: "Operations", label: "Audit chybějících dat",
+    text: "Najdi nemovitosti, u kterých nám v systému chybí data o rekonstrukci a stavebních úpravách a připrav jejich seznam k doplnění." },
+  { icon: Presentation, cat: "Executive", label: "Týdenní report + 3 slidy",
+    text: "Shrň výsledky minulého týdne do krátkého reportu pro vedení a připrav k tomu prezentaci se třemi slidy." },
+  { icon: BellRing, cat: "Monitoring", label: "Ranní briefing — Holešovice",
+    text: "Sleduj všechny hlavní realitní servery a každé ráno mě informuj o nových nabídkách v lokalitě Praha-Holešovice." },
 ];
 
 export function Chat() {
@@ -57,38 +46,38 @@ export function Chat() {
   const busy = status === "submitted" || status === "streaming";
 
   return (
-    <div className="flex h-full flex-col bg-paper">
+    <div className="flex h-full flex-col bg-bg">
       {/* Header rail */}
-      <header className="flex shrink-0 items-baseline justify-between border-b border-hairline bg-paper px-10 py-5">
-        <div>
-          <p className="eyebrow">Conversation</p>
-          <h2 className="display mt-1 text-[22px] leading-none tracking-tight">
-            Asistent Pepa
+      <header className="flex shrink-0 items-center justify-between border-b border-border bg-bg/80 px-8 py-4 backdrop-blur-sm">
+        <div className="flex items-center gap-2.5">
+          <Wrench className="size-3.5 text-text-faint" />
+          <h2 className="text-[13px] font-medium tracking-tight text-text">
+            Konverzace s agentem
           </h2>
         </div>
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-ink-muted">
-          <span className="inline-block size-1.5 rounded-full bg-success" />
-          On-line · gemini-2.5-flash
+        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-text-faint">
+          <span className="inline-block size-1.5 rounded-full bg-green" />
+          gemini-2.5-flash
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-10 py-8">
+      <div className="flex-1 overflow-y-auto px-8 py-8">
         {messages.length === 0 ? (
           <Welcome onPick={submit} />
         ) : (
-          <div className="mx-auto max-w-3xl space-y-10">
+          <div className="mx-auto max-w-3xl space-y-8">
             {messages.map((m) => (
-              <MessageRow key={m.id} message={m} />
+              <MessageBubble key={m.id} message={m} />
             ))}
             {status === "submitted" && (
-              <div className="flex items-center gap-3 text-[12px] text-ink-muted">
+              <div className="flex items-center gap-3 pl-12 text-[12px] text-text-muted">
                 <Pulse />
                 Agent přemýšlí…
               </div>
             )}
             {error && (
-              <div className="border border-[#C77373] bg-[#F2DCDB] px-4 py-3 text-sm text-[#7A1E1E]">
+              <div className="rounded-lg border border-rose/30 bg-[rgba(244,63,94,0.08)] px-4 py-3 text-sm text-rose">
                 Chyba: {error.message}
               </div>
             )}
@@ -98,33 +87,31 @@ export function Chat() {
       </div>
 
       {/* Composer */}
-      <div className="border-t border-hairline bg-paper-deep/40 px-10 py-5">
+      <div className="border-t border-border bg-bg-2/60 px-8 py-4">
         <form
-          className="mx-auto flex max-w-3xl items-end gap-3"
+          className="mx-auto max-w-3xl"
           onSubmit={(e) => {
             e.preventDefault();
             submit(input);
           }}
         >
-          <div className="flex-1">
-            <p className="eyebrow mb-1.5">Zpráva pro Pepu</p>
+          <div className="flex items-center gap-2 rounded-xl border border-border-strong bg-surface px-4 py-2.5 transition-colors focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(94,106,210,0.18)]">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={busy}
               placeholder={
-                'např. „Najdi byty 2+kk v Karlíně do 8 mil. a vyexportuj seznam"'
+                "Napište zprávu agentovi…  (např. „Najdi byty 2+kk v Karlíně do 8 mil.“)"
               }
-              className="w-full border-b border-hairline-strong bg-transparent px-0 py-2 text-[15px] outline-none placeholder:text-ink-faint focus:border-copper disabled:opacity-50"
+              className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-text-faint disabled:opacity-50"
             />
+            <Button type="submit" disabled={!input.trim() || busy} className="rounded-md">
+              <ArrowUp className="size-3.5" />
+            </Button>
           </div>
-          <Button
-            type="submit"
-            disabled={!input.trim() || busy}
-            className="mb-1"
-          >
-            Odeslat <ArrowUp className="size-3.5" />
-          </Button>
+          <p className="mt-2 px-1 font-mono text-[10px] text-text-faint">
+            Enter pro odeslání · Shift+Enter pro nový řádek
+          </p>
         </form>
       </div>
     </div>
@@ -133,83 +120,81 @@ export function Chat() {
 
 function Pulse() {
   return (
-    <span className="relative inline-flex size-2.5 items-center justify-center">
-      <span className="absolute inline-flex size-2.5 animate-ping rounded-full bg-copper opacity-50" />
-      <span className="relative inline-flex size-1.5 rounded-full bg-copper" />
+    <span className="relative inline-flex size-2 items-center justify-center">
+      <span className="absolute inline-flex size-2 animate-ping rounded-full bg-accent opacity-70" />
+      <span className="relative inline-flex size-1.5 rounded-full bg-accent" />
     </span>
   );
 }
 
 function Welcome({ onPick }: { onPick: (text: string) => void }) {
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="grid grid-cols-[1fr] gap-12 lg:grid-cols-[1.1fr_0.9fr]">
-        <div>
-          <p className="eyebrow">Co umím</p>
-          <h2 className="display mt-3 text-[44px] leading-[1.02] tracking-tight text-ink">
-            Ptám se{" "}
-            <em className="not-italic text-copper">vašich dat</em>{" "}
-            za vás.
-          </h2>
-          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-ink-muted">
-            Klienti, leady, kalendář, audity, ranní briefingy — vše skrz volání nástrojů
-            nad mockovanými integracemi Google Workspace a interním CRM.
-            <span className="text-ink"> Nikdy žádné odhady.</span>
-          </p>
-          <div className="mt-8 flex gap-6 text-[11px] uppercase tracking-wider text-ink-muted">
-            <Stat n="21" l="nástrojů" />
-            <Stat n="180" l="nemovitostí" />
-            <Stat n="5" l="integrací" />
-          </div>
-        </div>
-
-        <div>
-          <p className="eyebrow mb-3">Sugerované dotazy</p>
-          <ul>
-            {SUGGESTED_PROMPTS.map((p, i) => (
-              <li key={i} className="border-b border-hairline last:border-b-0">
-                <button
-                  onClick={() => onPick(p.text)}
-                  className="group flex w-full items-baseline gap-3 py-3 text-left transition-colors hover:bg-card"
-                >
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-ink-faint w-20 shrink-0">
-                    {p.cat}
-                  </span>
-                  <span className="flex-1 text-[14px] tracking-tight text-ink group-hover:text-copper">
-                    {p.label}
-                  </span>
-                  <span className="text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-copper">
-                    →
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+    <div className="mx-auto max-w-3xl pt-12">
+      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-2 px-3 py-1 text-[11px] text-text-muted">
+        <span className="inline-block size-1.5 rounded-full bg-green animate-pulse" />
+        Demo · syntetická data · seed=42
       </div>
-    </div>
-  );
-}
+      <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.025em] text-text">
+        Co potřebuje Pepa?
+      </h1>
+      <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-text-muted">
+        Ptám se vašich dat za vás. Klienti, leady, kalendář, audity, ranní briefingy
+        — vše skrz volání nástrojů nad mockovanými integracemi Google Workspace a interním CRM.
+        Žádné odhady, žádné halucinace.
+      </p>
 
-function Stat({ n, l }: { n: string; l: string }) {
-  return (
-    <div>
-      <p className="display text-[28px] leading-none tracking-tight text-ink">{n}</p>
-      <p className="mt-1 text-ink-faint">{l}</p>
+      <div className="mt-10 mb-3 flex items-center gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-text-faint">
+          Sugerované dotazy
+        </p>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {SUGGESTED_PROMPTS.map((p, i) => {
+          const Icon = p.icon;
+          return (
+            <button
+              key={i}
+              onClick={() => onPick(p.text)}
+              className="group flex items-start gap-3 rounded-lg border border-border bg-surface/60 p-3 text-left transition-colors hover:border-border-bright hover:bg-surface"
+            >
+              <Icon className="mt-0.5 size-4 shrink-0 text-text-faint group-hover:text-accent-bright" />
+              <div className="min-w-0 flex-1">
+                <p className="font-mono text-[9px] uppercase tracking-wider text-text-dim">
+                  {p.cat}
+                </p>
+                <p className="mt-0.5 text-[13px] tracking-tight text-text group-hover:text-text">
+                  {p.label}
+                </p>
+              </div>
+              <span className="opacity-0 transition-opacity group-hover:opacity-100 text-text-faint">
+                →
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 type Msg = ReturnType<typeof useChat>["messages"][number];
 
-function MessageRow({ message }: { message: Msg }) {
+function MessageBubble({ message }: { message: Msg }) {
   const isUser = message.role === "user";
   return (
-    <article className="grid grid-cols-[60px_1fr] gap-5">
-      <div className="text-right">
-        <p className="eyebrow">{isUser ? "Pepa" : "Agent"}</p>
+    <div className={cn("flex gap-3", isUser && "flex-row-reverse")}>
+      <div
+        className={cn(
+          "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
+          isUser
+            ? "bg-surface-3 text-text-2"
+            : "bg-gradient-to-br from-accent to-accent-bright text-white shadow-[0_0_0_1px_rgba(94,106,210,0.4),0_0_18px_rgba(94,106,210,0.3)]",
+        )}
+      >
+        {isUser ? <User className="size-3.5" /> : <Bot className="size-3.5" />}
       </div>
-      <div className={cn("min-w-0 space-y-3", isUser && "border-l border-copper pl-5")}>
+      <div className={cn("min-w-0 flex-1 space-y-3", isUser && "flex flex-col items-end")}>
         {message.parts.map((part, idx) => {
           if (part.type === "text") {
             const text = (part as { text: string }).text;
@@ -217,8 +202,10 @@ function MessageRow({ message }: { message: Msg }) {
               <div
                 key={idx}
                 className={cn(
-                  "whitespace-pre-wrap text-[15px] leading-relaxed",
-                  isUser ? "text-ink font-medium" : "text-ink-2",
+                  "max-w-full whitespace-pre-wrap text-[14px] leading-relaxed",
+                  isUser
+                    ? "rounded-2xl rounded-tr-md bg-surface-2 px-4 py-2.5 text-text"
+                    : "text-text-2",
                 )}
               >
                 {text}
@@ -231,6 +218,6 @@ function MessageRow({ message }: { message: Msg }) {
           return null;
         })}
       </div>
-    </article>
+    </div>
   );
 }
