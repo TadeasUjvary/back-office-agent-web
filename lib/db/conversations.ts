@@ -59,12 +59,21 @@ export async function saveMessages(
 ) {
   if (messages.length === 0) return;
   const sb = getServerSupabase();
-  const rows = messages.map((m) => ({
-    id: m.id,
-    conversation_id: conversationId,
-    role: m.role,
-    parts: m.parts,
-  }));
+  // The AI SDK occasionally emits the same message id twice in one batch.
+  // Postgres rejects ON CONFLICT touching the same row twice, so dedupe by id
+  // (last occurrence wins — latest parts) before upserting.
+  const byId = new Map<string, { id: string; conversation_id: string; role: string; parts: unknown[] }>();
+  for (const m of messages) {
+    if (!m.id || !m.id.trim()) continue;
+    byId.set(m.id, {
+      id: m.id,
+      conversation_id: conversationId,
+      role: m.role,
+      parts: m.parts,
+    });
+  }
+  const rows = [...byId.values()];
+  if (rows.length === 0) return;
   const { error } = await sb.from("messages").upsert(rows, { onConflict: "id" });
   if (error) throw error;
   await sb
