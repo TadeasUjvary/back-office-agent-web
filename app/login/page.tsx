@@ -13,7 +13,7 @@ export default function LoginPage() {
 
   // If already signed in, jump to /
   useEffect(() => {
-    if (hydrated && user) router.replace("/");
+    if (hydrated && user) router.replace("/prehled");
   }, [hydrated, user, router]);
 
   const submit = (e: React.FormEvent) => {
@@ -21,7 +21,7 @@ export default function LoginPage() {
     const trimmed = name.trim();
     if (!trimmed) return;
     login(trimmed);
-    router.replace("/");
+    router.replace("/prehled");
   };
 
   return (

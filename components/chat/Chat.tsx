@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   ArrowUp, Sparkles, User, Bot, Wrench, BarChart3, Mail, FileSearch,
-  Presentation, BellRing, Paperclip, Globe, X, Loader2, Mic,
+  Presentation, BellRing, Paperclip, Globe, X, Loader2, Mic, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
@@ -136,6 +136,17 @@ export function Chat() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
+  // Prefill from ?q= (quick actions on the dashboard link here)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (q) {
+      setInput(q);
+      // Clean the URL so reload doesn't re-fill
+      window.history.replaceState(null, "", "/");
+    }
+  }, []);
+
   const attachments = useAttachmentStore((s) => s.attachments);
   const addAttachment = useAttachmentStore((s) => s.add);
   const removeAttachment = useAttachmentStore((s) => s.remove);
@@ -217,8 +228,12 @@ export function Chat() {
           <Welcome onPick={submit} userName={user} />
         ) : (
           <div className="mx-auto max-w-3xl space-y-8">
-            {messages.map((m) => (
-              <MessageBubble key={m.id} message={m} />
+            {messages.map((m, i) => (
+              <MessageBubble
+                key={m.id}
+                message={m}
+                streaming={status === "streaming" && i === messages.length - 1}
+              />
             ))}
             {status === "submitted" && (
               <div className="flex items-center gap-3 pl-12 text-[12px] text-text-muted">
@@ -248,6 +263,10 @@ export function Chat() {
                 </div>
               );
             })()}
+            {/* Follow-up suggestion chips */}
+            {status === "ready" && (
+              <FollowupChips messages={messages} onPick={submit} />
+            )}
             <div ref={endRef} />
           </div>
         )}
@@ -458,8 +477,64 @@ function Welcome({ onPick, userName }: { onPick: (text: string) => void; userNam
 
 type Msg = ReturnType<typeof useChat>["messages"][number];
 
-function MessageBubble({ message }: { message: Msg }) {
+// Friendly noun labels for the thinking timeline
+const TOOL_STEP_LABELS: Record<string, string> = {
+  getNewClients: "Klienti dle zdroje",
+  getLeadsAndSalesTrend: "Trend leadů a prodejů",
+  proposeViewingSlots: "Volné termíny + e-mail",
+  auditMissingRenovationData: "Audit chybějících dat",
+  weeklyReport: "Manažerský report",
+  setupMarketMonitoring: "Nastavení monitoringu",
+  listAgents: "Seznam makléřů",
+  queryProperties: "Dotaz nad nemovitostmi",
+  queryLeads: "Dotaz nad leady",
+  queryClients: "Dotaz nad klienty",
+  querySales: "Agregace prodejů",
+  getPropertyDetail: "Detail nemovitosti",
+  getAgentDetail: "Profil makléře",
+  getLeadFunnel: "Konverzní trychtýř",
+  comparePeriods: "Srovnání období",
+  getCalendar: "Čtení kalendáře",
+  addCalendarEvent: "Zápis do kalendáře",
+  renderChart: "Vykreslení grafu",
+  exportData: "Generování souboru",
+  sendEmail: "Odeslání e-mailu",
+  logCRMNote: "Zápis do CRM",
+  urgeAgent: "Urgence makléři",
+  exportToSheet: "Export do Sheets",
+  fetchUrl: "Načtení webu",
+  webSearch: "Hledání na webu",
+};
+
+function ThinkingSteps({ message }: { message: Msg }) {
+  const steps = message.parts
+    .filter((p) => typeof p.type === "string" && p.type.startsWith("tool-"))
+    .map((p) => {
+      const name = (p.type as string).replace(/^tool-/, "");
+      const state = (p as { state?: string }).state;
+      const done = state === "output-available" || state === "output-error";
+      return { name, label: TOOL_STEP_LABELS[name] ?? name, done };
+    });
+  if (steps.length === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-border bg-surface-2/50 px-3 py-2">
+      {steps.map((s, i) => (
+        <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider">
+          {s.done ? (
+            <Check className="size-3 text-green" />
+          ) : (
+            <Loader2 className="size-3 animate-spin text-accent" />
+          )}
+          <span className={s.done ? "text-text-muted" : "text-text"}>{s.label}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function MessageBubble({ message, streaming }: { message: Msg; streaming?: boolean }) {
   const isUser = message.role === "user";
+  const hasTools = message.parts.some((p) => typeof p.type === "string" && p.type.startsWith("tool-"));
   return (
     <div className={cn("flex gap-3", isUser && "flex-row-reverse")}>
       <div
@@ -467,16 +542,19 @@ function MessageBubble({ message }: { message: Msg }) {
           "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
           isUser
             ? "bg-surface-3 text-text-2"
-            : "bg-gradient-to-br from-deep to-accent text-accent-bright shadow-[0_0_0_1px_rgba(64,138,113,0.5),0_0_18px_rgba(64,138,113,0.28)]",
+            : "bg-gradient-to-br from-deep to-accent text-white shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_0_18px_rgba(37,99,235,0.25)]",
         )}
       >
         {isUser ? <User className="size-3.5" /> : <Bot className="size-3.5" />}
       </div>
       <div className={cn("min-w-0 flex-1 space-y-3", isUser && "flex flex-col items-end")}>
+        {/* Thinking timeline (assistant, when it used tools) */}
+        {!isUser && hasTools && <ThinkingSteps message={message} />}
         {message.parts.map((part, idx) => {
           if (part.type === "text") {
             const text = (part as { text: string }).text;
             const cleaned = isUser ? cleanUserText(text) : text;
+            if (!cleaned.trim()) return null;
             return (
               <div
                 key={idx}
@@ -496,7 +574,83 @@ function MessageBubble({ message }: { message: Msg }) {
           }
           return null;
         })}
+        {streaming && (
+          <div className="flex items-center gap-2 text-[11px] text-text-faint">
+            <Pulse /> píšu odpověď…
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// ─── Follow-up suggestion chips ─────────────────────────────────────────
+const FOLLOWUP_BY_TOOL: Record<string, { label: string; prompt: string }[]> = {
+  getNewClients: [
+    { label: "A co Q2?", prompt: "A co Q2?" },
+    { label: "Vyexportovat do Excelu", prompt: "Vyexportuj ta data do Excelu." },
+  ],
+  auditMissingRenovationData: [
+    { label: "Poslat urgenci makléřům", prompt: "Pošli urgenci makléřům s nejvíce chybějícími daty." },
+    { label: "Vyexportovat do PDF", prompt: "Vyexportuj ten audit do PDF." },
+  ],
+  weeklyReport: [
+    { label: "Měsíční místo týdne", prompt: "Připrav to samé jako měsíční report s 5 slidy." },
+    { label: "Stáhnout jako PDF", prompt: "Vyexportuj report do PDF." },
+  ],
+  listAgents: [
+    { label: "Graf prodejů per makléř", prompt: "Vykresli koláčový graf prodejů per makléř." },
+    { label: "Detail nejlepšího", prompt: "Ukaž detail nejlepšího makléře." },
+  ],
+  querySales: [
+    { label: "Graf dle lokality", prompt: "Vykresli graf objemu prodejů podle lokality." },
+    { label: "Do Excelu", prompt: "Vyexportuj tyto prodeje do Excelu." },
+  ],
+  queryProperties: [
+    { label: "Do Excelu", prompt: "Vyexportuj tento výběr do Excelu." },
+    { label: "Průměrná cena", prompt: "Jaká je průměrná cena tohoto výběru?" },
+  ],
+  getLeadsAndSalesTrend: [
+    { label: "Srovnat kvartály", prompt: "Porovnej tento a minulý kvartál v objemu prodejů." },
+  ],
+  proposeViewingSlots: [
+    { label: "Naplánovat do kalendáře", prompt: "Naplánuj první navržený termín do kalendáře." },
+  ],
+  renderChart: [
+    { label: "Stáhnout graf jako PDF", prompt: "Vyexportuj poslední data do PDF." },
+  ],
+  webSearch: [
+    { label: "Shrň to do 3 bodů", prompt: "Shrň zjištěné do tří odrážek." },
+  ],
+};
+
+const GENERIC_FOLLOWUPS = [
+  { label: "Týdenní report", prompt: "Připrav týdenní report pro vedení." },
+  { label: "Audit dat", prompt: "Najdi nemovitosti bez dat o rekonstrukci." },
+];
+
+function FollowupChips({ messages, onPick }: { messages: Msg[]; onPick: (t: string) => void }) {
+  const last = messages[messages.length - 1];
+  if (!last || last.role !== "assistant") return null;
+
+  // Find the last tool used in the final assistant message
+  const toolNames = last.parts
+    .filter((p) => typeof p.type === "string" && p.type.startsWith("tool-"))
+    .map((p) => (p.type as string).replace(/^tool-/, ""));
+  const lastTool = toolNames[toolNames.length - 1];
+  const chips = (lastTool && FOLLOWUP_BY_TOOL[lastTool]) || GENERIC_FOLLOWUPS;
+
+  return (
+    <div className="flex flex-wrap gap-2 pl-10">
+      {chips.map((c, i) => (
+        <button
+          key={i}
+          onClick={() => onPick(c.prompt)}
+          className="rounded-full border border-border-strong bg-surface px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:border-accent hover:text-accent"
+        >
+          {c.label}
+        </button>
+      ))}
     </div>
   );
 }

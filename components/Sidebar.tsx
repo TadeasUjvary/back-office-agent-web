@@ -1,17 +1,18 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, BellRing, Database, Plug, Calendar, LogOut, Trash2 } from "lucide-react";
+import { MessageSquare, BellRing, Database, Plug, Calendar, LogOut, Trash2, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
 import { Mascot } from "./Mascot";
 
 const NAV = [
-  { href: "/", label: "Konverzace", icon: MessageSquare, shortcut: "1" },
-  { href: "/calendar", label: "Kalendář", icon: Calendar, shortcut: "2" },
-  { href: "/briefings", label: "Ranní briefingy", icon: BellRing, shortcut: "3" },
-  { href: "/data", label: "Datová vrstva", icon: Database, shortcut: "4" },
-  { href: "/integrations", label: "Integrace", icon: Plug, shortcut: "5" },
+  { href: "/prehled", label: "Přehled", icon: LayoutDashboard, shortcut: "1" },
+  { href: "/", label: "Konverzace", icon: MessageSquare, shortcut: "2" },
+  { href: "/calendar", label: "Kalendář", icon: Calendar, shortcut: "3" },
+  { href: "/briefings", label: "Ranní briefingy", icon: BellRing, shortcut: "4" },
+  { href: "/data", label: "Datová vrstva", icon: Database, shortcut: "5" },
+  { href: "/integrations", label: "Integrace", icon: Plug, shortcut: "6" },
 ];
 
 function initials(name: string) {
