@@ -36,7 +36,7 @@ export function ChartExportButton({
       // Render to PNG data URL @ 2x for retina sharpness
       const dataUrl = await toPng(targetRef.current, {
         pixelRatio: 2,
-        backgroundColor: "#131418",
+        backgroundColor: "#FFFFFF",
         cacheBust: true,
         // Skip the export button itself so it's not in the screenshot
         filter: (node) => {

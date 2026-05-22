@@ -78,7 +78,7 @@ export function RenderChart({ data }: { data: Data }) {
                     `${e.label} · ${e.value != null ? fmt(e.value, valueFormat) : ""}`
                   }
                   labelLine={false}
-                  stroke="#131418"
+                  stroke="#FFFFFF"
                   strokeWidth={2}
                 >
                   {data.data.map((_, i) => (

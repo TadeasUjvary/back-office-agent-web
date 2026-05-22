@@ -1,48 +1,47 @@
 @import "tailwindcss";
 
-/* ─── Design tokens — emerald / mint dark (mascot palette) ───────────────
-   #091413 · #285A48 · #408A71 · #B0E4CC                                    */
+/* ─── Design tokens — clean light (Stripe / Notion) ─────────────────────── */
 :root {
   /* Surfaces */
-  --bg: #091413;
-  --bg-2: #0C1A18;
-  --surface: #0F211D;
-  --surface-2: #16302A;
-  --surface-3: #1F4338;
+  --bg: #FFFFFF;
+  --bg-2: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface-2: #F4F6F8;
+  --surface-3: #EAEDF1;
 
-  /* Borders (mint-tinted) */
-  --border: rgba(176, 228, 204, 0.08);
-  --border-strong: rgba(176, 228, 204, 0.14);
-  --border-bright: rgba(176, 228, 204, 0.24);
+  /* Borders */
+  --border: #E7EAEE;
+  --border-strong: #D9DEE4;
+  --border-bright: #C5CCD4;
 
   /* Text */
-  --text: #E6F2EC;
-  --text-2: #C5DBD2;
-  --text-muted: #8AA99D;
-  --text-faint: #5C7B70;
-  --text-dim: #3C5750;
+  --text: #1A2230;
+  --text-2: #3B4658;
+  --text-muted: #687385;
+  --text-faint: #94A0B0;
+  --text-dim: #B6BFCB;
 
-  /* Accent — emerald + mint */
-  --accent: #408A71;
-  --accent-bright: #B0E4CC;
-  --accent-glow: rgba(64, 138, 113, 0.28);
-  --deep: #285A48;
+  /* Accent — clean blue */
+  --accent: #2563EB;
+  --accent-bright: #3B82F6;
+  --accent-glow: rgba(37, 99, 235, 0.15);
+  --deep: #1E40AF;
 
   /* Highlights for data viz */
-  --cyan: #6FB89A;
-  --green: #408A71;
-  --orange: #C9A24B;
-  --rose: #D97A6C;
+  --cyan: #0EA5E9;
+  --green: #16A34A;
+  --orange: #EA580C;
+  --rose: #E11D48;
 
   /* Status soft */
-  --success: #4FA384;
-  --success-soft: rgba(64, 138, 113, 0.16);
-  --warn: #C9A24B;
-  --warn-soft: rgba(201, 162, 75, 0.14);
-  --danger: #D97A6C;
-  --danger-soft: rgba(217, 122, 108, 0.14);
-  --info: #B0E4CC;
-  --info-soft: rgba(176, 228, 204, 0.12);
+  --success: #16A34A;
+  --success-soft: rgba(22, 163, 74, 0.10);
+  --warn: #B45309;
+  --warn-soft: rgba(217, 119, 6, 0.12);
+  --danger: #DC2626;
+  --danger-soft: rgba(220, 38, 38, 0.10);
+  --info: #2563EB;
+  --info-soft: rgba(37, 99, 235, 0.10);
 
   /* Fonts */
   --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -87,16 +86,14 @@ body {
   letter-spacing: -0.005em;
 }
 
-/* Ambient emerald glow at top-left + mint glow at bottom-right */
+/* Very subtle blue wash at top — barely there, keeps it clean */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(800px 500px at 0% 0%, rgba(64, 138, 113, 0.10), transparent 60%),
-    radial-gradient(900px 600px at 100% 100%, rgba(176, 228, 204, 0.05), transparent 60%);
+  background: radial-gradient(900px 500px at 100% 0%, rgba(37, 99, 235, 0.035), transparent 65%);
 }
 body > * { position: relative; z-index: 1; }
 
@@ -112,12 +109,12 @@ body > * { position: relative; z-index: 1; }
 
 .tab { font-variant-numeric: tabular-nums; }
 
-::selection { background: var(--accent); color: #091413; }
+::selection { background: var(--accent); color: #FFFFFF; }
 
 /* Scrollbar */
-* { scrollbar-color: var(--surface-3) transparent; scrollbar-width: thin; }
+* { scrollbar-color: var(--border-bright) transparent; scrollbar-width: thin; }
 *::-webkit-scrollbar { width: 8px; height: 8px; }
-*::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+*::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
 /* Recharts text */
@@ -125,9 +122,10 @@ body > * { position: relative; z-index: 1; }
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line { stroke: var(--border); }
 .recharts-default-tooltip {
-  background: var(--surface-2) !important;
+  background: #FFFFFF !important;
   border: 1px solid var(--border-strong) !important;
   border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08) !important;
 }
 .recharts-tooltip-label,
 .recharts-tooltip-item { color: var(--text) !important; }
@@ -135,9 +133,9 @@ body > * { position: relative; z-index: 1; }
 /* Focus ring */
 *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
-/* Subtle inner top highlight on cards (lift effect) */
+/* Soft drop shadow for cards (light theme) */
 .lift {
   box-shadow:
-    inset 0 1px 0 0 rgba(176, 228, 204, 0.04),
-    0 1px 0 0 rgba(0, 0, 0, 0.4);
+    0 1px 2px rgba(16, 24, 40, 0.04),
+    0 1px 3px rgba(16, 24, 40, 0.06);
 }

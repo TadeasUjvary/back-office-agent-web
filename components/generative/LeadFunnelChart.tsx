@@ -25,7 +25,7 @@ export function LeadFunnelChart({ data }: { data: Data }) {
           </div>
           <ChartExportButton targetRef={ref} title="Pipeline leadů" />
         </div>
-        <div className="mt-4 flex items-baseline gap-8 border-t border-hairline pt-4">
+        <div className="mt-4 flex items-baseline gap-8 border-t border-border pt-4">
           <KPI label="Celkem" value={String(data.total)} />
           <KPI label="Konverze" value={`${data.conversionRate} %`} accent />
           <KPI label="Kvalifikace" value={`${data.qualificationRate} %`} />

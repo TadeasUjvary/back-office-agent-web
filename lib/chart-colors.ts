@@ -1,13 +1,13 @@
-/** Chart palette — emerald/mint family (mascot colors) with enough contrast. */
+/** Chart palette — vivid but harmonious on a white background. */
 export const CHART_COLORS = [
-  "#408A71", // emerald (accent)
-  "#B0E4CC", // mint (bright)
-  "#285A48", // deep green
-  "#6FB89A", // mid green
-  "#A7D9BE", // pale mint
-  "#2E6B55", // forest
-  "#83C9AC", // sage
+  "#2563EB", // blue (accent)
+  "#0EA5E9", // sky
+  "#16A34A", // green
+  "#F59E0B", // amber
+  "#EF4444", // red
+  "#8B5CF6", // violet
+  "#64748B", // slate
 ];
 
-export const CHART_GRID = "rgba(176,228,204,0.07)";
-export const CHART_AXIS = "#5C7B70";
+export const CHART_GRID = "rgba(16,24,40,0.06)";
+export const CHART_AXIS = "#94A0B0";

@@ -59,7 +59,7 @@ export function ClientsBySourceChart({
                   outerRadius={100}
                   label={(e: { name?: string; count?: number }) => `${e.name} · ${e.count}`}
                   labelLine={false}
-                  stroke="#131418"
+                  stroke="#FFFFFF"
                   strokeWidth={2}
                 >
                   {data.bySource.map((_, i) => (

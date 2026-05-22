@@ -207,7 +207,7 @@ function SlideRenderer({ slide }: { slide: ReportSlide }) {
                   outerRadius={120}
                   label={(e: { label?: string; value?: number }) => `${e.label} · ${e.value}`}
                   labelLine={false}
-                  stroke="#131418"
+                  stroke="#FFFFFF"
                   strokeWidth={2}
                 >
                   {slide.data.map((_, idx) => <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />)}
