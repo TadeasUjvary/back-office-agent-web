@@ -4,6 +4,7 @@ import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { FileDown, FileText, FileSpreadsheet, FileType, CheckCircle2, Loader2 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 type Content =
   | { kind: "table"; columns: string[]; rows: (string | number)[][]; summary?: string }
@@ -37,10 +38,12 @@ export function ExportDownloadCard({ data }: { data: Data }) {
         await generateExcel(filename, data);
       }
       setDone(true);
+      const ext = data.format === "pdf" ? "PDF" : data.format === "word" ? "Word" : "Excel";
+      toast.success(`${ext} staženo`, `${filename}.${data.format === "excel" ? "xlsx" : data.format === "word" ? "docx" : "pdf"}`);
       setTimeout(() => setDone(false), 3000);
     } catch (e) {
       console.error("Export failed", e);
-      alert("Export selhal: " + (e instanceof Error ? e.message : "Neznámá chyba"));
+      toast.error("Export selhal", e instanceof Error ? e.message : "Neznámá chyba");
     } finally {
       setDownloading(false);
     }

@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { useCalendarStore } from "@/lib/calendar-store";
+import { Toaster } from "@/components/Toaster";
 
 function CalendarHydrator() {
   const { user, hydrated } = useAuth();
@@ -17,6 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <CalendarHydrator />
       {children}
+      <Toaster />
     </AuthProvider>
   );
 }

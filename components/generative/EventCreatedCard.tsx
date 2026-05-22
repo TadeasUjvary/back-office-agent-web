@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { CalendarPlus, CheckCircle2, ExternalLink, MapPin, Users } from "lucide-react";
 import { useCalendarStore } from "@/lib/calendar-store";
 import { useAuth } from "@/lib/auth";
+import { toast } from "@/lib/toast";
 import type { mockAddCalendarEvent } from "@/lib/actions";
-import { czDate } from "@/lib/format";
+import { czDate, czShortDate } from "@/lib/format";
 
 type Data = ReturnType<typeof mockAddCalendarEvent>;
 
@@ -30,6 +31,7 @@ export function EventCreatedCard({ data }: { data: Data }) {
         location: data.location !== "—" ? data.location : undefined,
         notes: data.notes,
       })
+      .then(() => toast.success("Přidáno do kalendáře", `${data.title} · ${czShortDate(data.date)} ${data.startTime}`))
       .catch((e) => console.warn("[calendar] persist failed", e));
   }, [data, user]);
 

@@ -543,6 +543,7 @@ function MessageBubble({ message, streaming }: { message: Msg; streaming?: boole
           isUser
             ? "bg-surface-3 text-text-2"
             : "bg-gradient-to-br from-deep to-accent text-white shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_0_18px_rgba(37,99,235,0.25)]",
+          !isUser && streaming && "mascot-think",
         )}
       >
         {isUser ? <User className="size-3.5" /> : <Bot className="size-3.5" />}

@@ -12,12 +12,17 @@ export function Mascot({
   size = 28,
   className,
   rounded = "rounded-md",
+  state = "still",
 }: {
   size?: number;
   className?: string;
   rounded?: string;
+  /** "alive" = gentle idle float, "think" = faster float + glow, "still" = no motion */
+  state?: "alive" | "think" | "still";
 }) {
   const [failed, setFailed] = useState(false);
+  const anim =
+    state === "alive" ? "mascot-alive" : state === "think" ? "mascot-think" : undefined;
 
   if (failed) {
     return (
@@ -25,11 +30,12 @@ export function Mascot({
         className={cn(
           "relative flex items-center justify-center bg-gradient-to-br from-deep to-accent",
           rounded,
+          anim,
           className,
         )}
         style={{ width: size, height: size }}
       >
-        <Sparkles className="text-accent-bright" style={{ width: size * 0.5, height: size * 0.5 }} />
+        <Sparkles className="text-white" style={{ width: size * 0.5, height: size * 0.5 }} />
       </div>
     );
   }
@@ -42,7 +48,7 @@ export function Mascot({
       width={size}
       height={size}
       onError={() => setFailed(true)}
-      className={cn("object-contain", rounded, className)}
+      className={cn("object-contain", rounded, anim, className)}
       style={{ width: size, height: size }}
     />
   );

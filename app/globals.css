@@ -139,3 +139,47 @@ body > * { position: relative; z-index: 1; }
     0 1px 2px rgba(16, 24, 40, 0.04),
     0 1px 3px rgba(16, 24, 40, 0.06);
 }
+
+/* ─── Micro-animations ──────────────────────────────────────────────────── */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-2.5px) rotate(-1.5deg); }
+}
+@keyframes mascot-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.0); }
+  50%      { box-shadow: 0 0 14px 1px rgba(37, 99, 235, 0.22); }
+}
+.mascot-alive { animation: mascot-float 4.5s ease-in-out infinite; }
+.mascot-think { animation: mascot-float 1.4s ease-in-out infinite, mascot-glow 1.4s ease-in-out infinite; }
+
+@keyframes bell-wiggle {
+  0%, 92%, 100% { transform: rotate(0deg); }
+  94% { transform: rotate(11deg); }
+  96% { transform: rotate(-9deg); }
+  98% { transform: rotate(5deg); }
+}
+.bell-wiggle { animation: bell-wiggle 3.2s ease-in-out infinite; transform-origin: top center; }
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.panel-in { animation: panel-in 0.16s ease-out; transform-origin: top left; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.toast-in { animation: toast-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1); }
+
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-rise { animation: fade-rise 0.28s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-alive, .mascot-think, .bell-wiggle, .panel-in, .toast-in, .fade-rise {
+    animation: none !important;
+  }
+}

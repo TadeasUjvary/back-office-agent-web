@@ -4,7 +4,9 @@ import { usePathname } from "next/navigation";
 import { MessageSquare, BellRing, Database, Plug, Calendar, LogOut, Trash2, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
+import { toast } from "@/lib/toast";
 import { Mascot } from "./Mascot";
+import { NotificationsBell } from "./NotificationsBell";
 
 const NAV = [
   { href: "/prehled", label: "Přehled", icon: LayoutDashboard, shortcut: "1" },
@@ -33,8 +35,9 @@ export function Sidebar() {
         headers: { "x-user-id": encodeURIComponent(user) },
       });
       window.dispatchEvent(new CustomEvent("bo-chat-wipe"));
+      toast.success("Historie vymazána", "Začínáte s čistou konverzací.");
     } catch (e) {
-      alert("Mazání selhalo: " + (e instanceof Error ? e.message : "neznámá chyba"));
+      toast.error("Mazání selhalo", e instanceof Error ? e.message : "neznámá chyba");
     }
   };
 
@@ -43,12 +46,15 @@ export function Sidebar() {
       {/* Brand */}
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-          <Mascot size={32} />
+          <Mascot size={32} state="alive" />
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold tracking-tight text-text">
               Reality Holding
             </p>
             <p className="truncate text-[11px] text-text-faint">Back office agent</p>
+          </div>
+          <div className="ml-auto">
+            <NotificationsBell />
           </div>
         </div>
       </div>
