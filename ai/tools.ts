@@ -347,16 +347,19 @@ export const tools = {
     execute: async (args) => args,
   }),
 
-  // ─── EXPORT — reálné PDF / XLSX ke stažení ─────────────────────────────
+  // ─── EXPORT — reálné PDF / XLSX / DOCX ke stažení ──────────────────────
   exportData: tool({
     description:
-      "Připraví data k reálnému stažení jako PDF nebo Excel. Použij když uživatel řekne 'vyexportuj', 'vygeneruj PDF', 'pošli mi to v Excelu', 'stáhni'. **DŮLEŽITÉ — schema:**\n" +
+      "Vygeneruje stahovatelný soubor: PDF, Excel (.xlsx) nebo Word (.docx). Použij když uživatel řekne 'vyexportuj', 'vygeneruj PDF/Excel/Word', 'stáhni', 'pošli mi to v dokumentu'. " +
+      "**Funguje i pro úpravu nahraných souborů:** když uživatel nahrál Excel/CSV/Word přes sponku a chce ho upravit (přidat sloupec, přepočítat, seřadit, doplnit text), vezmi data z přílohy, proveď úpravu a vrať nový soubor přes tento tool. " +
+      "**DŮLEŽITÉ — schema:**\n" +
       "- `content.columns` MUSÍ být POLE PROSTÝCH ŘETĚZCŮ jako [\"Kód\", \"Adresa\", \"Cena\"], NIKDY ne pole objektů.\n" +
-      "- `content.rows` MUSÍ být POLE POLÍ (2D array) jako [[\"RH-1001\", \"Praha\", 3500000], [\"RH-1002\", \"Brno\", 4200000]], NIKDY ne pole objektů.\n" +
+      "- `content.rows` MUSÍ být POLE POLÍ (2D array) jako [[\"RH-1001\", \"Praha\", 3500000]], NIKDY ne pole objektů.\n" +
       "- Pořadí hodnot v `rows[i]` musí odpovídat pořadí `columns`.\n" +
-      "Použij `kind:'table'` pro tabulky, `kind:'text'` pro souvislý text, `kind:'report'` pro multi-sekční report. Po zavolání **napiš max 1 krátkou větu** (např. 'Hotovo, stáhněte kliknutím.') — nic víc, žádné shrnutí dat, žádné další tooly.",
+      "Použij `kind:'table'` pro tabulky/Excel, `kind:'text'` pro souvislý text, `kind:'report'` pro vícesekční dokument (ideální pro Word). " +
+      "Word (.docx) je nejvhodnější pro 'report'/'text' (smlouva, dopis, zápis); Excel pro 'table'. Po zavolání **napiš max 1 krátkou větu** (např. 'Hotovo, stáhněte kliknutím.').",
     inputSchema: z.object({
-      format: z.enum(["pdf", "excel"]).describe("Formát stahovaného souboru"),
+      format: z.enum(["pdf", "excel", "word"]).describe("Formát: pdf / excel / word"),
       title: z.string().describe("Název dokumentu/souboru (bez přípony)"),
       content: z.discriminatedUnion("kind", [
         z.object({

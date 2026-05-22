@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { FileDown, FileText, FileSpreadsheet, CheckCircle2, Loader2 } from "lucide-react";
+import { FileDown, FileText, FileSpreadsheet, FileType, CheckCircle2, Loader2 } from "lucide-react";
 
 type Content =
   | { kind: "table"; columns: string[]; rows: (string | number)[][]; summary?: string }
@@ -11,7 +11,7 @@ type Content =
   | { kind: "report"; sections: { heading: string; body: string }[] };
 
 type Data = {
-  format: "pdf" | "excel";
+  format: "pdf" | "excel" | "word";
   title: string;
   content: Content;
   preparedAt: string;
@@ -31,6 +31,8 @@ export function ExportDownloadCard({ data }: { data: Data }) {
       const filename = `${safeFileName(data.title)}-${data.preparedAt.slice(0, 10)}`;
       if (data.format === "pdf") {
         await generatePDF(filename, data);
+      } else if (data.format === "word") {
+        await generateWord(filename, data);
       } else {
         await generateExcel(filename, data);
       }
@@ -44,8 +46,11 @@ export function ExportDownloadCard({ data }: { data: Data }) {
     }
   };
 
-  const Icon = data.format === "pdf" ? FileText : FileSpreadsheet;
-  const accentClass = data.format === "pdf" ? "bg-rose/15 text-rose" : "bg-green/15 text-green";
+  const Icon = data.format === "pdf" ? FileText : data.format === "word" ? FileType : FileSpreadsheet;
+  const accentClass =
+    data.format === "pdf" ? "bg-rose/15 text-rose"
+    : data.format === "word" ? "bg-[rgba(37,99,235,0.12)] text-accent"
+    : "bg-green/15 text-green";
 
   return (
     <Card>
@@ -70,7 +75,7 @@ export function ExportDownloadCard({ data }: { data: Data }) {
 
         <div className="flex items-center justify-between border-t border-border pt-4">
           <p className="font-mono text-[10px] text-text-faint">
-            Generuje se v prohlížeči · {data.format === "pdf" ? "jspdf" : "SheetJS xlsx"}
+            Generuje se v prohlížeči · {data.format === "pdf" ? "jspdf" : data.format === "word" ? "docx" : "SheetJS xlsx"}
           </p>
           <Button onClick={onDownload} disabled={downloading}>
             {downloading ? (
@@ -86,7 +91,7 @@ export function ExportDownloadCard({ data }: { data: Data }) {
             ) : (
               <>
                 <FileDown className="size-3.5" />
-                Stáhnout {data.format === "pdf" ? "PDF" : "Excel"}
+                Stáhnout {data.format === "pdf" ? "PDF" : data.format === "word" ? "Word" : "Excel"}
               </>
             )}
           </Button>
@@ -261,4 +266,109 @@ async function generateExcel(filename: string, data: Data) {
   }
 
   XLSX.writeFile(wb, `${filename}.xlsx`);
+}
+
+// ─── Word generation (docx) ────────────────────────────────────────────
+async function generateWord(filename: string, data: Data) {
+  const docx = await import("docx");
+  const {
+    Document, Packer, Paragraph, TextRun, HeadingLevel,
+    Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle,
+  } = docx;
+
+  const children: unknown[] = [];
+
+  // Title
+  children.push(
+    new Paragraph({
+      children: [new TextRun({ text: data.title, bold: true, size: 36 })],
+      spacing: { after: 120 },
+    }),
+  );
+  children.push(
+    new Paragraph({
+      children: [new TextRun({
+        text: `Reality Holding · ${data.preparedAt.slice(0, 10)}`,
+        color: "888888", size: 18,
+      })],
+      spacing: { after: 300 },
+    }),
+  );
+
+  if (data.content.kind === "table") {
+    const c = data.content;
+    const headerRow = new TableRow({
+      tableHeader: true,
+      children: c.columns.map((col) =>
+        new TableCell({
+          shading: { fill: "1E40AF" },
+          children: [new Paragraph({ children: [new TextRun({ text: String(col), bold: true, color: "FFFFFF", size: 20 })] })],
+        }),
+      ),
+    });
+    const bodyRows = c.rows.map((r, i) =>
+      new TableRow({
+        children: r.map((cell) =>
+          new TableCell({
+            shading: i % 2 === 1 ? { fill: "F4F6F8" } : undefined,
+            children: [new Paragraph({ children: [new TextRun({ text: String(cell), size: 20 })] })],
+          }),
+        ),
+      }),
+    );
+    children.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [headerRow, ...bodyRows],
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 1, color: "D9DEE4" },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: "D9DEE4" },
+          left: { style: BorderStyle.SINGLE, size: 1, color: "D9DEE4" },
+          right: { style: BorderStyle.SINGLE, size: 1, color: "D9DEE4" },
+          insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "E7EAEE" },
+          insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "E7EAEE" },
+        },
+      }),
+    );
+    if (c.summary) {
+      children.push(new Paragraph({ children: [new TextRun({ text: c.summary, size: 20 })], spacing: { before: 240 } }));
+    }
+  } else if (data.content.kind === "text") {
+    for (const para of data.content.body.split(/\n{2,}/)) {
+      children.push(new Paragraph({ children: [new TextRun({ text: para.trim(), size: 22 })], spacing: { after: 160 } }));
+    }
+  } else {
+    for (const s of data.content.sections) {
+      children.push(
+        new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          children: [new TextRun({ text: s.heading, bold: true, size: 26 })],
+          spacing: { before: 240, after: 100 },
+        }),
+      );
+      for (const para of s.body.split(/\n{2,}/)) {
+        children.push(new Paragraph({ children: [new TextRun({ text: para.trim(), size: 22 })], spacing: { after: 140 } }));
+      }
+    }
+  }
+
+  // Footer note
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: "Generated by Back Office Agent · Reality Holding", color: "AAAAAA", size: 16 })],
+      spacing: { before: 400 },
+    }),
+  );
+
+  const doc = new Document({ sections: [{ properties: {}, children: children as never }] });
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${filename}.docx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
