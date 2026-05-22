@@ -71,6 +71,7 @@
   --color-rose: var(--rose);
   --color-success: var(--success);
   --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);

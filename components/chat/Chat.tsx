@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   ArrowUp, Sparkles, User, Wrench, BarChart3, Mail, FileSearch,
-  Presentation, BellRing, Paperclip, Globe, X, Loader2, Mic, Check,
+  Presentation, BellRing, Paperclip, Globe, X, Loader2, Mic, Check, RotateCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Mascot } from "@/components/Mascot";
@@ -112,10 +112,15 @@ export function Chat() {
       .finally(() => setLoadingHistory(false));
   }, [user]);
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({
+  const { messages, sendMessage, status, error, setMessages, regenerate, clearError } = useChat({
     transport,
     messages: initialMessages,
   });
+
+  const retry = useCallback(() => {
+    try { clearError?.(); } catch {}
+    regenerate();
+  }, [clearError, regenerate]);
 
   // Hydrate messages when history arrives
   useEffect(() => {
@@ -245,24 +250,44 @@ export function Chat() {
               </div>
             )}
             {error && (
-              <div className="rounded-lg border border-rose/30 bg-[rgba(244,63,94,0.08)] px-4 py-3 text-sm text-rose">
-                Chyba: {error.message}
+              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-rose/30 bg-[rgba(244,63,94,0.08)] px-4 py-3 text-[13px] text-rose">
+                <span className="flex-1">
+                  Něco se pokazilo při komunikaci s asistentem. Nejspíš dočasný limit
+                  Gemini API — zkuste to za chvíli znovu.
+                </span>
+                <button
+                  onClick={retry}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-rose px-3 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90"
+                >
+                  <RotateCw className="size-3.5" /> Zkusit znovu
+                </button>
               </div>
             )}
-            {/* Empty-stop hint */}
+            {/* No-reply hint — agent finished but produced nothing (empty stop / rate limit) */}
             {(() => {
-              if (status !== "ready" || messages.length === 0) return null;
+              if (error || status !== "ready" || messages.length === 0) return null;
               const last = messages[messages.length - 1];
-              if (last.role !== "assistant") return null;
-              const hasContent = last.parts.some((p) => {
-                if (p.type === "text") return ((p as { text?: string }).text ?? "").trim().length > 0;
-                if (typeof p.type === "string" && p.type.startsWith("tool-")) return true;
-                return false;
-              });
-              if (hasContent) return null;
+              const noReply =
+                last.role === "user" ||
+                (last.role === "assistant" &&
+                  !last.parts.some((p) => {
+                    if (p.type === "text") return ((p as { text?: string }).text ?? "").trim().length > 0;
+                    if (typeof p.type === "string" && p.type.startsWith("tool-")) return true;
+                    return false;
+                  }));
+              if (!noReply) return null;
               return (
-                <div className="rounded-lg border border-warn/30 bg-warn-soft px-4 py-3 text-[13px] text-warn">
-                  Agent neodpověděl — zkuste přeformulovat dotaz, nebo zkontrolujte limit Gemini API. (Empty stop)
+                <div className="flex flex-wrap items-center gap-3 rounded-lg border border-warn/30 bg-warn-soft px-4 py-3 text-[13px] text-warn">
+                  <span className="flex-1">
+                    Agent neodpověděl — bývá to dočasný limit Gemini API. Zkuste to
+                    prosím znovu.
+                  </span>
+                  <button
+                    onClick={retry}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-warn px-3 py-1.5 text-[12px] font-medium text-white transition-opacity hover:opacity-90"
+                  >
+                    <RotateCw className="size-3.5" /> Zkusit znovu
+                  </button>
                 </div>
               );
             })()}
