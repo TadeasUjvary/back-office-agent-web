@@ -188,7 +188,7 @@ async function generatePDF(filename: string, data: Data) {
       head: [data.content.columns],
       body: data.content.rows.map((r) => r.map((c) => String(c))),
       styles: { fontSize: 9, cellPadding: 4 },
-      headStyles: { fillColor: [94, 106, 210], textColor: 255, fontStyle: "bold" },
+      headStyles: { fillColor: [40, 90, 72], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [248, 248, 250] },
     });
     if (data.content.summary) {

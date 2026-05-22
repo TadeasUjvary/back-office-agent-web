@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { Mascot } from "@/components/Mascot";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,10 +29,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-10 flex flex-col items-center">
-          <div className="relative flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent-bright">
-            <Sparkles className="size-5 text-white" />
-            <div className="absolute -inset-1 -z-10 rounded-xl bg-accent/40 blur-md" />
-          </div>
+          <Mascot size={72} rounded="rounded-2xl" />
           <p className="eyebrow mt-5">Reality Holding</p>
           <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-text">
             Back Office Agent
@@ -58,7 +56,7 @@ export default function LoginPage() {
               onChange={(e) => setName(e.target.value)}
               autoFocus
               placeholder="např. Tadeáš"
-              className="w-full rounded-md border border-border-strong bg-bg-2 px-3 py-2 text-[14px] outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(94,106,210,0.18)]"
+              className="w-full rounded-md border border-border-strong bg-bg-2 px-3 py-2 text-[14px] outline-none transition-colors focus:border-accent focus:shadow-[0_0_0_3px_rgba(64,138,113,0.22)]"
             />
           </label>
 
@@ -70,10 +68,6 @@ export default function LoginPage() {
             Vstoupit <ArrowRight className="size-3.5" />
           </Button>
         </form>
-
-        <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-wider text-text-faint">
-          Demo · synthetic data · gemini-2.5-flash
-        </p>
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquare, BellRing, Database, Plug, Sparkles, Calendar, LogOut, Trash2 } from "lucide-react";
+import { MessageSquare, BellRing, Database, Plug, Calendar, LogOut, Trash2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
+import { Mascot } from "./Mascot";
 
 const NAV = [
   { href: "/", label: "Konverzace", icon: MessageSquare, shortcut: "1" },
@@ -41,10 +42,7 @@ export function Sidebar() {
       {/* Brand */}
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
-          <div className="relative flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-accent to-accent-bright">
-            <Sparkles className="size-3.5 text-white" />
-            <div className="absolute -inset-0.5 -z-10 rounded-md bg-accent/30 blur" />
-          </div>
+          <Mascot size={32} />
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold tracking-tight text-text">
               Reality Holding
@@ -100,11 +98,11 @@ export function Sidebar() {
         </div>
       )}
 
-      <div className="mt-auto border-t border-border px-3 py-3">
-        {/* User pill */}
-        {user && (
-          <div className="mb-2 flex items-center gap-2.5 rounded-lg border border-border bg-surface/60 p-2">
-            <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-accent/70 to-accent-bright/70 text-[11px] font-semibold uppercase text-white">
+      {/* User pill */}
+      {user && (
+        <div className="mt-auto border-t border-border px-3 py-3">
+          <div className="flex items-center gap-2.5 rounded-lg border border-border bg-surface/60 p-2">
+            <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-deep to-accent text-[11px] font-semibold uppercase text-accent-bright">
               {initials(user)}
             </div>
             <div className="min-w-0 flex-1">
@@ -119,25 +117,8 @@ export function Sidebar() {
               <LogOut className="size-3.5" />
             </button>
           </div>
-        )}
-        <div className="rounded-lg border border-border bg-surface/60 p-3">
-          <div className="flex items-center gap-2">
-            <span className="relative flex size-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-60" />
-              <span className="relative inline-flex size-2 rounded-full bg-green" />
-            </span>
-            <p className="text-[11px] font-medium text-text-2">Agent online</p>
-          </div>
-          <p className="mt-1.5 font-mono text-[10px] text-text-faint">
-            gemini-2.5-flash
-          </p>
-          <div className="mt-3 flex items-center gap-3 text-[10px] text-text-faint">
-            <span><span className="text-text-2 font-mono">22</span> nástrojů</span>
-            <span className="size-0.5 rounded-full bg-text-dim" />
-            <span><span className="text-text-2 font-mono">5</span> integrací</span>
-          </div>
         </div>
-      </div>
+      )}
     </aside>
   );
 }

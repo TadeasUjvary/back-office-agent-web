@@ -186,17 +186,11 @@ export function Chat() {
 
   return (
     <div className="flex h-full flex-col bg-bg">
-      <header className="flex shrink-0 items-center justify-between border-b border-border bg-bg/80 px-8 py-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2.5">
-          <Wrench className="size-3.5 text-text-faint" />
-          <h2 className="text-[13px] font-medium tracking-tight text-text">
-            Asistent
-          </h2>
-        </div>
-        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-text-faint">
-          <span className="inline-block size-1.5 rounded-full bg-green" />
-          gemini-2.5-flash
-        </div>
+      <header className="flex shrink-0 items-center gap-2.5 border-b border-border bg-bg/80 px-8 py-4 backdrop-blur-sm">
+        <Wrench className="size-3.5 text-text-faint" />
+        <h2 className="text-[13px] font-medium tracking-tight text-text">
+          Asistent
+        </h2>
       </header>
 
       <div className="flex-1 overflow-y-auto px-8 py-8">
@@ -207,7 +201,7 @@ export function Chat() {
             <div className="h-32 w-full rounded-lg bg-surface-2" />
           </div>
         ) : messages.length === 0 ? (
-          <Welcome onPick={submit} />
+          <Welcome onPick={submit} userName={user} />
         ) : (
           <div className="mx-auto max-w-3xl space-y-8">
             {messages.map((m) => (
@@ -312,7 +306,7 @@ export function Chat() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 rounded-xl border border-border-strong bg-surface px-3 py-2 transition-colors focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(94,106,210,0.18)]">
+          <div className="flex items-center gap-2 rounded-xl border border-border-strong bg-surface px-3 py-2 transition-colors focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(64,138,113,0.22)]">
             {/* File upload button */}
             <input
               ref={fileInputRef}
@@ -351,9 +345,6 @@ export function Chat() {
               <ArrowUp className="size-3.5" />
             </Button>
           </div>
-          <p className="mt-2 px-1 font-mono text-[10px] text-text-faint">
-            Enter pro odeslání · sponka pro PDF/XLSX/CSV/TXT (max 5 MB)
-          </p>
         </form>
       </div>
     </div>
@@ -369,7 +360,8 @@ function Pulse() {
   );
 }
 
-function Welcome({ onPick }: { onPick: (text: string) => void }) {
+function Welcome({ onPick, userName }: { onPick: (text: string) => void; userName?: string | null }) {
+  const firstName = (userName ?? "").trim().split(/\s+/)[0] || null;
   return (
     <div className="mx-auto max-w-3xl pt-12">
       <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface-2 px-3 py-1 text-[11px] text-text-muted">
@@ -377,7 +369,7 @@ function Welcome({ onPick }: { onPick: (text: string) => void }) {
         Reality Holding · interní pracovní prostředí
       </div>
       <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.025em] text-text">
-        Dobrý den, Pepo.
+        {firstName ? `Dobrý den, ${firstName}.` : "Dobrý den."}
       </h1>
       <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-text-muted">
         Co dnes potřebujete vyřešit? Můžu projít leady, prohledat databázi nemovitostí,
@@ -431,7 +423,7 @@ function MessageBubble({ message }: { message: Msg }) {
           "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
           isUser
             ? "bg-surface-3 text-text-2"
-            : "bg-gradient-to-br from-accent to-accent-bright text-white shadow-[0_0_0_1px_rgba(94,106,210,0.4),0_0_18px_rgba(94,106,210,0.3)]",
+            : "bg-gradient-to-br from-deep to-accent text-accent-bright shadow-[0_0_0_1px_rgba(64,138,113,0.5),0_0_18px_rgba(64,138,113,0.28)]",
         )}
       >
         {isUser ? <User className="size-3.5" /> : <Bot className="size-3.5" />}

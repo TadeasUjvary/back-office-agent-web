@@ -1,46 +1,48 @@
 @import "tailwindcss";
 
-/* ─── Design tokens — Linear / Vercel inspired dark ─────────────────────── */
+/* ─── Design tokens — emerald / mint dark (mascot palette) ───────────────
+   #091413 · #285A48 · #408A71 · #B0E4CC                                    */
 :root {
   /* Surfaces */
-  --bg: #08090B;
-  --bg-2: #0E0F12;
-  --surface: #131418;
-  --surface-2: #1A1B20;
-  --surface-3: #22232A;
+  --bg: #091413;
+  --bg-2: #0C1A18;
+  --surface: #0F211D;
+  --surface-2: #16302A;
+  --surface-3: #1F4338;
 
-  /* Borders */
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.10);
-  --border-bright: rgba(255, 255, 255, 0.16);
+  /* Borders (mint-tinted) */
+  --border: rgba(176, 228, 204, 0.08);
+  --border-strong: rgba(176, 228, 204, 0.14);
+  --border-bright: rgba(176, 228, 204, 0.24);
 
   /* Text */
-  --text: #F4F4F5;
-  --text-2: #D4D4D8;
-  --text-muted: #A1A1AA;
-  --text-faint: #71717A;
-  --text-dim: #52525B;
+  --text: #E6F2EC;
+  --text-2: #C5DBD2;
+  --text-muted: #8AA99D;
+  --text-faint: #5C7B70;
+  --text-dim: #3C5750;
 
-  /* Accent — Linear violet-blue */
-  --accent: #5E6AD2;
-  --accent-bright: #7C8AF0;
-  --accent-glow: rgba(94, 106, 210, 0.20);
+  /* Accent — emerald + mint */
+  --accent: #408A71;
+  --accent-bright: #B0E4CC;
+  --accent-glow: rgba(64, 138, 113, 0.28);
+  --deep: #285A48;
 
   /* Highlights for data viz */
-  --cyan: #22D3EE;
-  --green: #10B981;
-  --orange: #F59E0B;
-  --rose: #F43F5E;
+  --cyan: #6FB89A;
+  --green: #408A71;
+  --orange: #C9A24B;
+  --rose: #D97A6C;
 
   /* Status soft */
-  --success: #10B981;
-  --success-soft: rgba(16, 185, 129, 0.12);
-  --warn: #F59E0B;
-  --warn-soft: rgba(245, 158, 11, 0.12);
-  --danger: #F43F5E;
-  --danger-soft: rgba(244, 63, 94, 0.12);
-  --info: #38BDF8;
-  --info-soft: rgba(56, 189, 248, 0.12);
+  --success: #4FA384;
+  --success-soft: rgba(64, 138, 113, 0.16);
+  --warn: #C9A24B;
+  --warn-soft: rgba(201, 162, 75, 0.14);
+  --danger: #D97A6C;
+  --danger-soft: rgba(217, 122, 108, 0.14);
+  --info: #B0E4CC;
+  --info-soft: rgba(176, 228, 204, 0.12);
 
   /* Fonts */
   --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -63,6 +65,7 @@
   --color-border-bright: var(--border-bright);
   --color-accent: var(--accent);
   --color-accent-bright: var(--accent-bright);
+  --color-deep: var(--deep);
   --color-cyan: var(--cyan);
   --color-green: var(--green);
   --color-orange: var(--orange);
@@ -84,7 +87,7 @@ body {
   letter-spacing: -0.005em;
 }
 
-/* Ambient violet glow at top-left + cyan glow at bottom-right */
+/* Ambient emerald glow at top-left + mint glow at bottom-right */
 body::before {
   content: "";
   position: fixed;
@@ -92,8 +95,8 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(800px 500px at 0% 0%, rgba(94, 106, 210, 0.08), transparent 60%),
-    radial-gradient(900px 600px at 100% 100%, rgba(34, 211, 238, 0.05), transparent 60%);
+    radial-gradient(800px 500px at 0% 0%, rgba(64, 138, 113, 0.10), transparent 60%),
+    radial-gradient(900px 600px at 100% 100%, rgba(176, 228, 204, 0.05), transparent 60%);
 }
 body > * { position: relative; z-index: 1; }
 
@@ -109,7 +112,7 @@ body > * { position: relative; z-index: 1; }
 
 .tab { font-variant-numeric: tabular-nums; }
 
-::selection { background: var(--accent); color: white; }
+::selection { background: var(--accent); color: #091413; }
 
 /* Scrollbar */
 * { scrollbar-color: var(--surface-3) transparent; scrollbar-width: thin; }
@@ -135,6 +138,6 @@ body > * { position: relative; z-index: 1; }
 /* Subtle inner top highlight on cards (lift effect) */
 .lift {
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 0 rgba(176, 228, 204, 0.04),
     0 1px 0 0 rgba(0, 0, 0, 0.4);
 }

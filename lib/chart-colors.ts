@@ -1,13 +1,13 @@
-/** Dark-mode chart palette — Linear/Vercel inspired. */
+/** Chart palette — emerald/mint family (mascot colors) with enough contrast. */
 export const CHART_COLORS = [
-  "#7C8AF0", // accent bright (violet-blue)
-  "#22D3EE", // cyan
-  "#10B981", // green
-  "#F59E0B", // amber
-  "#F43F5E", // rose
-  "#A78BFA", // violet
-  "#94A3B8", // slate
+  "#408A71", // emerald (accent)
+  "#B0E4CC", // mint (bright)
+  "#285A48", // deep green
+  "#6FB89A", // mid green
+  "#A7D9BE", // pale mint
+  "#2E6B55", // forest
+  "#83C9AC", // sage
 ];
 
-export const CHART_GRID = "rgba(255,255,255,0.06)";
-export const CHART_AXIS = "#71717A";
+export const CHART_GRID = "rgba(176,228,204,0.07)";
+export const CHART_AXIS = "#5C7B70";

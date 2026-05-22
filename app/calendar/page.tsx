@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -47,7 +47,31 @@ export default function CalendarPage() {
     deleteEvent(user, id).catch((e) => console.warn("[calendar] delete failed", e));
   };
 
+  // Anchor the visible week to where the data actually is:
+  // the week of the earliest event on/after TODAY, else earliest event overall, else TODAY.
+  const dataAnchor = useMemo(() => {
+    if (events.length === 0) return TODAY_ISO;
+    const dates = events.map((e) => e.date).sort();
+    const upcoming = dates.find((d) => d >= TODAY_ISO);
+    return upcoming ?? dates[0];
+  }, [events]);
+
   const [weekStart, setWeekStart] = useState(() => startOfWeek(TODAY_ISO));
+  const [userMoved, setUserMoved] = useState(false);
+
+  // Once events load, jump to the week containing them (unless user navigated)
+  useEffect(() => {
+    if (!userMoved) setWeekStart(startOfWeek(dataAnchor));
+  }, [dataAnchor, userMoved]);
+
+  const moveWeek = (deltaDays: number) => {
+    setUserMoved(true);
+    setWeekStart((w) => addDays(w, deltaDays));
+  };
+  const goToData = () => {
+    setUserMoved(false);
+    setWeekStart(startOfWeek(dataAnchor));
+  };
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -75,20 +99,21 @@ export default function CalendarPage() {
         title="Co máte v plánu"
         description={
           <>
-            Stávajících schůzek: <span className="font-mono">{totalCount - agentCount}</span>.
-            Co naplánoval asistent v chatu: <span className="font-mono text-accent-bright">{agentCount}</span>.
-            Cokoliv přibude v rozhovoru, objeví se tady.
+            Celkem <span className="font-mono">{totalCount}</span> událostí
+            {agentCount > 0 && (
+              <> · <span className="font-mono text-accent-bright">{agentCount}</span> z chatu</>
+            )}.
           </>
         }
         right={
           <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={() => setWeekStart(addDays(weekStart, -7))} className="px-2">
+            <Button variant="secondary" onClick={() => moveWeek(-7)} className="px-2">
               <ChevronLeft className="size-3.5" />
             </Button>
-            <Button variant="secondary" onClick={() => setWeekStart(startOfWeek(TODAY_ISO))} className="text-xs">
-              Tento týden
+            <Button variant="secondary" onClick={goToData} className="text-xs">
+              Na události
             </Button>
-            <Button variant="secondary" onClick={() => setWeekStart(addDays(weekStart, 7))} className="px-2">
+            <Button variant="secondary" onClick={() => moveWeek(7)} className="px-2">
               <ChevronRight className="size-3.5" />
             </Button>
           </div>
