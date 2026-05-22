@@ -152,6 +152,12 @@ body > * { position: relative; z-index: 1; }
 .mascot-alive { animation: mascot-float 4.5s ease-in-out infinite; }
 .mascot-think { animation: mascot-float 1.4s ease-in-out infinite, mascot-glow 1.4s ease-in-out infinite; }
 
+@keyframes mascot-swap {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.mascot-swap { animation: mascot-swap 0.3s ease-out; }
+
 @keyframes bell-wiggle {
   0%, 92%, 100% { transform: rotate(0deg); }
   94% { transform: rotate(11deg); }
@@ -179,7 +185,7 @@ body > * { position: relative; z-index: 1; }
 .fade-rise { animation: fade-rise 0.28s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .mascot-alive, .mascot-think, .bell-wiggle, .panel-in, .toast-in, .fade-rise {
+  .mascot-alive, .mascot-think, .mascot-swap, .bell-wiggle, .panel-in, .toast-in, .fade-rise {
     animation: none !important;
   }
 }

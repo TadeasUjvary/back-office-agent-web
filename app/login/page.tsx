@@ -29,7 +29,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-10 flex flex-col items-center">
-          <Mascot size={72} rounded="rounded-2xl" />
+          <Mascot size={72} rounded="rounded-2xl" state="alive" />
           <p className="eyebrow mt-5">Reality Holding</p>
           <h1 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-text">
             Back Office Agent

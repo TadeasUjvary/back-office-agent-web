@@ -4,10 +4,11 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import {
-  ArrowUp, Sparkles, User, Bot, Wrench, BarChart3, Mail, FileSearch,
+  ArrowUp, Sparkles, User, Wrench, BarChart3, Mail, FileSearch,
   Presentation, BellRing, Paperclip, Globe, X, Loader2, Mic, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Mascot } from "@/components/Mascot";
 import { Switch } from "@/components/ui/Switch";
 import { ToolPart } from "./ToolPart";
 import { cn } from "@/lib/cn";
@@ -236,9 +237,11 @@ export function Chat() {
               />
             ))}
             {status === "submitted" && (
-              <div className="flex items-center gap-3 pl-12 text-[12px] text-text-muted">
-                <Pulse />
-                Agent přemýšlí…
+              <div className="flex items-center gap-3 text-[12px] text-text-muted">
+                <Mascot size={28} className="shrink-0" pose="think" state="think" />
+                <span className="inline-flex items-center gap-2">
+                  <Pulse /> Agent přemýšlí…
+                </span>
               </div>
             )}
             {error && (
@@ -537,17 +540,18 @@ function MessageBubble({ message, streaming }: { message: Msg; streaming?: boole
   const hasTools = message.parts.some((p) => typeof p.type === "string" && p.type.startsWith("tool-"));
   return (
     <div className={cn("flex gap-3", isUser && "flex-row-reverse")}>
-      <div
-        className={cn(
-          "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
-          isUser
-            ? "bg-surface-3 text-text-2"
-            : "bg-gradient-to-br from-deep to-accent text-white shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_0_18px_rgba(37,99,235,0.25)]",
-          !isUser && streaming && "mascot-think",
-        )}
-      >
-        {isUser ? <User className="size-3.5" /> : <Bot className="size-3.5" />}
-      </div>
+      {isUser ? (
+        <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-surface-3 text-text-2">
+          <User className="size-3.5" />
+        </div>
+      ) : (
+        <Mascot
+          size={28}
+          className="mt-0.5 shrink-0"
+          pose={streaming ? "write" : "done"}
+          state={streaming ? "think" : "alive"}
+        />
+      )}
       <div className={cn("min-w-0 flex-1 space-y-3", isUser && "flex flex-col items-end")}>
         {/* Thinking timeline (assistant, when it used tools) */}
         {!isUser && hasTools && <ThinkingSteps message={message} />}
