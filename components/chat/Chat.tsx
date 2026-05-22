@@ -5,13 +5,14 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   ArrowUp, Sparkles, User, Bot, Wrench, BarChart3, Mail, FileSearch,
-  Presentation, BellRing, Paperclip, Globe, X, Loader2,
+  Presentation, BellRing, Paperclip, Globe, X, Loader2, Mic,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { ToolPart } from "./ToolPart";
 import { cn } from "@/lib/cn";
 import { useAttachmentStore } from "@/lib/attachment-store";
+import { useSpeechRecognition } from "@/lib/useSpeechRecognition";
 
 type Suggestion = {
   icon: typeof Sparkles;
@@ -139,6 +140,18 @@ export function Chat() {
   const addAttachment = useAttachmentStore((s) => s.add);
   const removeAttachment = useAttachmentStore((s) => s.remove);
   const clearAttachments = useAttachmentStore((s) => s.clear);
+
+  // Voice input (Web Speech API, cs-CZ)
+  const {
+    supported: micSupported,
+    listening,
+    error: micError,
+    start: startMic,
+  } = useSpeechRecognition({
+    lang: "cs-CZ",
+    onInterim: (t) => setInput(t),
+    onFinal: (t) => setInput(t),
+  });
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -306,7 +319,12 @@ export function Chat() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 rounded-xl border border-border-strong bg-surface px-3 py-2 transition-colors focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(64,138,113,0.22)]">
+          <div className={cn(
+            "flex items-center gap-2 rounded-xl border bg-surface px-3 py-2 transition-colors",
+            listening
+              ? "border-rose shadow-[0_0_0_3px_rgba(225,29,72,0.18)]"
+              : "border-border-strong focus-within:border-accent focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.18)]",
+          )}>
             {/* File upload button */}
             <input
               ref={fileInputRef}
@@ -328,12 +346,35 @@ export function Chat() {
               {uploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
             </button>
 
+            {/* Voice input button */}
+            {micSupported && (
+              <button
+                type="button"
+                onClick={startMic}
+                disabled={busy}
+                title={listening ? "Poslouchám… klikněte pro zastavení" : "Diktovat hlasem"}
+                className={cn(
+                  "relative rounded-md p-1.5 transition-colors disabled:opacity-50",
+                  listening
+                    ? "bg-rose/10 text-rose"
+                    : "text-text-faint hover:bg-surface-2 hover:text-text",
+                )}
+              >
+                {listening && (
+                  <span className="absolute inset-0 -z-10 animate-ping rounded-md bg-rose/30" />
+                )}
+                <Mic className="size-4" />
+              </button>
+            )}
+
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={busy}
               placeholder={
-                "Napište co potřebujete vyřešit…  (např. „Najdi byty 2+kk v Karlíně do 8 mil.“)"
+                listening
+                  ? "Poslouchám… mluvte"
+                  : "Napište co potřebujete vyřešit…  (např. „Najdi byty 2+kk v Karlíně do 8 mil.“)"
               }
               className="flex-1 bg-transparent px-1 text-[14px] outline-none placeholder:text-text-faint disabled:opacity-50"
             />
@@ -345,6 +386,9 @@ export function Chat() {
               <ArrowUp className="size-3.5" />
             </Button>
           </div>
+          {micError && (
+            <p className="mt-1.5 px-1 text-[11px] text-rose">{micError}</p>
+          )}
         </form>
       </div>
     </div>
