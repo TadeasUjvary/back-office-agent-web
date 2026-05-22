@@ -2,6 +2,7 @@
 import { useState, type RefObject } from "react";
 import { FileDown, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { toast } from "@/lib/toast";
 
 function slug(s: string) {
   return s
@@ -88,10 +89,11 @@ export function ChartExportButton({
       doc.save(`${slug(title)}-${date}.pdf`);
 
       setDone(true);
+      toast.success("Graf stažen", `${slug(title)}-${date}.pdf`);
       setTimeout(() => setDone(false), 2500);
     } catch (e) {
       console.error("[chart-export] failed", e);
-      alert("Export grafu selhal: " + (e instanceof Error ? e.message : "neznámá chyba"));
+      toast.error("Export grafu selhal", e instanceof Error ? e.message : "neznámá chyba");
     } finally {
       setBusy(false);
     }
